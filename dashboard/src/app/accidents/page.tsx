@@ -1,0 +1,833 @@
+'use client';
+
+import React, { useRef, useEffect, useCallback, useState } from 'react';
+import * as d3 from 'd3';
+import {
+  Search, Network, ChevronRight, ArrowRight,
+  Loader2, X, Minus, Plus, BookOpen, Play,
+  AlertTriangle, Building2, MapPin, Wrench,
+  GraduationCap,
+} from 'lucide-react';
+
+/* ─── Types ─── */
+interface GraphNode extends d3.SimulationNodeDatum {
+  id: string; name: string; label: string; metadata: string;
+}
+interface GraphEdge {
+  source: string | GraphNode; target: string | GraphNode; type: string;
+}
+
+/* ─── Colors ─── */
+const NODE_COLORS: Record<string, string> = {
+  Accident: '#ef4444', Company: '#2563eb', Agent: '#f59e0b',
+  Location: '#10b981', Component: '#8b5cf6', AccidentType: '#ec4899',
+};
+const NODE_KR: Record<string, string> = {
+  Accident: '사고', Company: '회사', Agent: '관계자',
+  Location: '장소', Component: '기인물', AccidentType: '사고유형',
+};
+const NODE_RADIUS: Record<string, number> = {
+  AccidentType: 14, Company: 10, Agent: 10, Location: 10, Component: 10, Accident: 5,
+};
+
+const QUICK_ITEMS = [
+  { id: 'TYPE_떨어짐(추락)', label: '추락', sub: 'Fall from height' },
+  { id: 'TYPE_끼임(협착)', label: '협착', sub: 'Caught in machinery' },
+  { id: 'TYPE_넘어짐(전도)', label: '전도', sub: 'Toppling / trip' },
+  { id: 'TYPE_감전', label: '감전', sub: 'Electric shock' },
+  { id: 'TYPE_맞음(낙하/비래)', label: '비래', sub: 'Struck-by object' },
+  { id: 'TYPE_부딪힘(충돌)', label: '충돌', sub: 'Collision' },
+  { id: 'TYPE_무너짐(붕괴)', label: '붕괴', sub: 'Structural collapse' },
+  { id: 'TYPE_화재/폭발', label: '화재/폭발', sub: 'Fire / explosion' },
+  { id: 'TYPE_깔림/전복', label: '깔림/전복', sub: 'Crushed / overturned' },
+  { id: 'TYPE_질식/중독', label: '질식/중독', sub: 'Suffocation' },
+  { id: 'TYPE_베임/찔림/찰과상', label: '베임/찔림', sub: 'Cut / laceration' },
+  { id: 'TYPE_기타', label: '기타', sub: 'Other types' },
+];
+
+/* ─── Guide action scenarios ─── */
+const GUIDE_ACTIONS = [
+  {
+    num: 1,
+    icon: AlertTriangle,
+    color: '#ef4444',
+    title: '사고 패턴 분석',
+    subtitle: 'TBM 미팅 활용',
+    desc: '추락 사고 유형을 2-hop으로 탐색하여 관련 장소(비계, 지붕, 사다리)와 기인물(안전대, 작업발판)의 패턴을 분석합니다. TBM(Tool Box Meeting) 시 데이터 기반의 안전 교육이 가능합니다.',
+    action: { nodeId: 'TYPE_떨어짐(추락)', depth: 2, max: 30 },
+  },
+  {
+    num: 2,
+    icon: Building2,
+    color: '#2563eb',
+    title: '시공사 리스크 프로파일링',
+    subtitle: '입찰 평가 활용',
+    desc: '특정 시공사를 중심으로 과거 사고 이력과 사고 유형 분포를 조회합니다. 입찰 평가 시 협력업체의 안전 이력을 객관적으로 분석하여 리스크를 사전에 파악합니다.',
+    action: { nodeId: 'CO_주식회사 반도건설산업', depth: 2, max: 20 },
+  },
+  {
+    num: 3,
+    icon: MapPin,
+    color: '#10b981',
+    title: '사고 원인 교차 분석',
+    subtitle: '안전관리계획서 활용',
+    desc: '비계에서 발생한 사고의 공통 패턴을 분석합니다. 비계 사고와 연결된 시공사, 관계자(직종), 기인물을 한눈에 파악하여 안전관리계획서 작성 시 데이터로 뒷받침합니다.',
+    action: { nodeId: 'LOC_비계', depth: 2, max: 25 },
+  },
+  {
+    num: 4,
+    icon: GraduationCap,
+    color: '#8b5cf6',
+    title: '안전 교육 콘텐츠',
+    subtitle: '교육 자료 제작',
+    desc: '협착 사고의 핵심 사례 10건을 중심으로 관련 시공사, 장소, 기인물을 시각화합니다. 사고 노드를 클릭하면 상세 원인과 재발방지 대책을 확인할 수 있어 교육 자료로 활용 가능합니다.',
+    action: { nodeId: 'TYPE_끼임(협착)', depth: 2, max: 10 },
+  },
+];
+
+/* ─── Component ─── */
+export default function AccidentExplorerPage() {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [graphData, setGraphData] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [depth, setDepth] = useState(2);
+  const [maxAccidents, setMaxAccidents] = useState(25);
+  const [graphStats, setGraphStats] = useState<any>(null);
+  const [showGuide, setShowGuide] = useState(false);
+  const simulationRef = useRef<d3.Simulation<GraphNode, GraphEdge> | null>(null);
+
+  const handleSearch = useCallback(async () => {
+    if (!searchTerm.trim()) return;
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/graph/search?q=${encodeURIComponent(searchTerm)}`);
+      const data = await res.json();
+      setSearchResults(data.nodes || []);
+    } catch (err) { console.error(err); }
+    finally { setSearching(false); }
+  }, [searchTerm]);
+
+  const loadSubGraph = useCallback(async (nodeId: string, d?: number, max?: number) => {
+    setLoading(true);
+    setSearchResults([]);
+    setSelectedNode(null);
+    const useDepth = d ?? depth;
+    const useMax = max ?? maxAccidents;
+    try {
+      const res = await fetch(
+        `/api/graph/subgraph?id=${encodeURIComponent(nodeId)}&depth=${useDepth}&max=${useMax}`
+      );
+      const data = await res.json();
+      setGraphData({ nodes: data.nodes, edges: data.edges });
+      setGraphStats(data.stats || null);
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  }, [depth, maxAccidents]);
+
+  /* Handle guide action click */
+  const handleGuideAction = useCallback((action: { nodeId: string; depth: number; max: number }) => {
+    setShowGuide(false);
+    loadSubGraph(action.nodeId, action.depth, action.max);
+  }, [loadSubGraph]);
+
+  /* D3 force graph */
+  useEffect(() => {
+    if (!graphData || !svgRef.current || !containerRef.current) return;
+    const width = containerRef.current.clientWidth || 900;
+    const height = containerRef.current.clientHeight || 600;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('*').remove();
+    svg.attr('width', width).attr('height', height);
+
+    const g = svg.append('g');
+    const zoom = d3.zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.05, 8])
+      .on('zoom', (event) => g.attr('transform', event.transform));
+    svg.call(zoom);
+
+    const nodes: GraphNode[] = graphData.nodes.map(n => ({ ...n }));
+    const edges: GraphEdge[] = graphData.edges.map(e => ({ ...e }));
+
+    const nodeCount = nodes.length;
+    const chargeStrength = nodeCount > 200 ? -50 : nodeCount > 100 ? -80 : -140;
+    const linkDist = nodeCount > 200 ? 40 : nodeCount > 100 ? 60 : 80;
+
+    const simulation = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(edges).id((d: any) => d.id).distance(linkDist))
+      .force('charge', d3.forceManyBody().strength(chargeStrength))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius((d: any) => (NODE_RADIUS[d.label] || 5) + 3))
+      .force('x', d3.forceX(width / 2).strength(0.03))
+      .force('y', d3.forceY(height / 2).strength(0.03));
+    simulationRef.current = simulation;
+
+    const link = g.append('g').selectAll('line').data(edges)
+      .enter().append('line')
+      .attr('stroke', '#e2e5ea').attr('stroke-width', 0.6).attr('stroke-opacity', 0.6);
+
+    const node = g.append('g').selectAll('g').data(nodes)
+      .enter().append('g')
+      .style('cursor', 'pointer')
+      .call(d3.drag<SVGGElement, GraphNode>()
+        .on('start', (event, d) => { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+        .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y; })
+        .on('end', (event, d) => { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
+      )
+      .on('click', (_e, d) => setSelectedNode(d))
+      .on('dblclick', (_e, d) => loadSubGraph(d.id));
+
+    node.append('circle')
+      .attr('r', (d: GraphNode) => NODE_RADIUS[d.label] || 5)
+      .attr('fill', (d: GraphNode) => NODE_COLORS[d.label] || '#9ca3af')
+      .attr('opacity', (d: GraphNode) => d.label === 'Accident' ? 0.6 : 0.9)
+      .attr('stroke', '#fff').attr('stroke-width', (d: GraphNode) => d.label === 'Accident' ? 0.5 : 1.5);
+
+    node.filter((d: GraphNode) => d.label !== 'Accident')
+      .append('text')
+      .text((d: GraphNode) => d.name.length > 10 ? d.name.slice(0, 10) + '…' : d.name)
+      .attr('dy', (d: GraphNode) => (NODE_RADIUS[d.label] || 5) + 12)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '9px').attr('fill', '#4b5563').attr('font-weight', '500')
+      .attr('font-family', 'Pretendard, Inter, sans-serif');
+
+    node.filter((d: GraphNode) => d.label === 'Accident')
+      .append('title')
+      .text((d: GraphNode) => d.name);
+
+    simulation.on('tick', () => {
+      link.attr('x1', (d: any) => d.source.x).attr('y1', (d: any) => d.source.y)
+        .attr('x2', (d: any) => d.target.x).attr('y2', (d: any) => d.target.y);
+      node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
+    });
+
+    const initialScale = nodeCount > 200 ? 0.5 : nodeCount > 100 ? 0.65 : 0.85;
+    svg.call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(initialScale));
+
+    return () => { simulation.stop(); };
+  }, [graphData, loadSubGraph]);
+
+  const dot = (color: string, size = 7) => ({
+    width: size, height: size, borderRadius: '50%', background: color, flexShrink: 0 as const,
+  });
+
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100vh',
+      fontFamily: "'Pretendard', 'Inter', sans-serif",
+      color: 'var(--text-secondary)', background: 'var(--bg-root)',
+    }}>
+      {/* ══════════ Header ══════════ */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: 80, boxSizing: 'border-box', padding: '0 40px', borderBottom: 'none',
+        background: '#002A7A', flexShrink: 0,
+      }}>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', fontFamily: "'Inter', 'Pretendard', sans-serif" }}>
+            사고 지식 그래프
+          </h1>
+          <p style={{ fontSize: 11, color: '#93c5fd', letterSpacing: '0.08em', marginTop: 3, fontFamily: "'Inter', monospace" }}>
+            SAFETY KNOWLEDGE GRAPH — 38K NODES · 170K+ RELATIONSHIPS
+          </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          {GUIDE_ACTIONS.map((ga) => {
+            const Icon = ga.icon;
+            return (
+              <button
+                key={ga.num}
+                onClick={() => handleGuideAction(ga.action)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '5px 12px', borderRadius: 16,
+                  border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.08)',
+                  color: '#fff', fontSize: 12, fontWeight: 600,
+                  cursor: 'pointer', transition: 'all 0.15s ease',
+                  fontFamily: 'inherit'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = ga.color;
+                  e.currentTarget.style.color = '#fff';
+                  e.currentTarget.style.borderColor = ga.color;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                  e.currentTarget.style.color = '#fff';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
+                }}
+              >
+                <Icon style={{ width: 13, height: 13 }} />
+                {ga.title}
+              </button>
+            );
+          })}
+          <div style={{ width: 1, height: 16, background: 'var(--border-default)', margin: '0 4px' }} />
+
+          {/* ── Guide Button ── */}
+          <button
+            onClick={() => setShowGuide(true)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 14px', borderRadius: 16,
+              border: '1px solid rgba(255,255,255,0.3)',
+              background: 'rgba(255,255,255,0.08)',
+              color: '#fff', fontSize: 11.5, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'inherit',
+              transition: 'all 0.15s ease', marginLeft: 4,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--accent)';
+              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.borderColor = 'var(--accent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
+            }}
+          >
+            <BookOpen style={{ width: 13, height: 13 }} />
+            지식그래프 활용가이드
+          </button>
+        </div>
+      </div>
+
+      {/* ══════════ Body ══════════ */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+
+        {/* ── Left Panel ── */}
+        <div style={{
+          width: 300, minWidth: 300, flexShrink: 0,
+          borderRight: '1px solid var(--border-default)',
+          background: '#fff', display: 'flex', flexDirection: 'column',
+          overflowY: 'auto',
+        }} className="custom-scrollbar">
+
+          {/* Search */}
+          <div style={{ padding: '14px 16px 12px' }}>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8, fontFamily: "'Inter', monospace" }}>
+              Entity Search
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
+              <div style={{ position: 'relative' }}>
+                <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                <input type="text" value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="사고, 회사, 장소 검색..."
+                  style={{
+                    width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-default)',
+                    borderRadius: 8, padding: '9px 10px 9px 32px', fontSize: 13,
+                    color: 'var(--text-primary)', outline: 'none', fontFamily: "'Pretendard', sans-serif",
+                    transition: 'border-color 0.12s, box-shadow 0.12s',
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-muted)'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border-default)'; e.currentTarget.style.boxShadow = 'none'; }}
+                />
+                {searching && <Loader2 style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: 'var(--accent)', animation: 'spin 1s linear infinite' }} />}
+              </div>
+            </form>
+          </div>
+
+          {/* Depth / Max Control */}
+          <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 4, fontFamily: "'Inter', monospace" }}>탐색 깊이</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid var(--border-default)', borderRadius: 6, overflow: 'hidden' }}>
+                <button onClick={() => setDepth(Math.max(1, depth - 1))} style={{ padding: '5px 8px', background: 'var(--bg-input)', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontFamily: 'inherit' }}>
+                  <Minus style={{ width: 12, height: 12 }} />
+                </button>
+                <span style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', padding: '5px 0' }}>{depth}-hop</span>
+                <button onClick={() => setDepth(Math.min(3, depth + 1))} style={{ padding: '5px 8px', background: 'var(--bg-input)', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontFamily: 'inherit' }}>
+                  <Plus style={{ width: 12, height: 12 }} />
+                </button>
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 4, fontFamily: "'Inter', monospace" }}>사고 수</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid var(--border-default)', borderRadius: 6, overflow: 'hidden' }}>
+                <button onClick={() => setMaxAccidents(Math.max(5, maxAccidents - 5))} style={{ padding: '5px 8px', background: 'var(--bg-input)', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontFamily: 'inherit' }}>
+                  <Minus style={{ width: 12, height: 12 }} />
+                </button>
+                <span style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', padding: '5px 0' }}>{maxAccidents}건</span>
+                <button onClick={() => setMaxAccidents(Math.min(100, maxAccidents + 5))} style={{ padding: '5px 8px', background: 'var(--bg-input)', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontFamily: 'inherit' }}>
+                  <Plus style={{ width: 12, height: 12 }} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Search results */}
+          {searchResults.length > 0 && (
+            <div style={{ borderTop: '1px solid var(--border-default)', maxHeight: 220, overflowY: 'auto' }} className="custom-scrollbar">
+              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', padding: '10px 16px 6px', fontFamily: "'Inter', monospace" }}>
+                Results — {searchResults.length}
+              </div>
+              {searchResults.map((n: any) => (
+                <button key={n.id} onClick={() => loadSubGraph(n.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', width: '100%', textAlign: 'left',
+                    background: 'transparent', border: 'none', borderBottom: '1px solid var(--border-subtle)',
+                    cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.1s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <div style={dot(NODE_COLORS[n.label] || '#9ca3af', 7)} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.name}</div>
+                    <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 1 }}>{n.label}</div>
+                  </div>
+                  <ChevronRight style={{ width: 14, height: 14, color: 'var(--text-dim)', flexShrink: 0 }} />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Quick Explore */}
+          <div style={{ borderTop: '1px solid var(--border-default)', flex: 1 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', padding: '12px 16px 6px', fontFamily: "'Inter', monospace" }}>
+              Quick Explore
+            </div>
+            {QUICK_ITEMS.map((item, i) => (
+              <button key={item.id} onClick={() => loadSubGraph(item.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                  padding: '8px 16px', width: '100%', textAlign: 'left',
+                  background: 'transparent', border: 'none',
+                  borderBottom: i < QUICK_ITEMS.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                  cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.1s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={dot('#ec4899', 6)} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{item.label}</div>
+                    <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 1 }}>{item.sub}</div>
+                  </div>
+                </div>
+                <ArrowRight style={{ width: 12, height: 12, color: 'var(--text-dim)', flexShrink: 0 }} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ══════════ Graph Area ══════════ */}
+        <div ref={containerRef} style={{ flex: 1, position: 'relative', overflow: 'hidden', background: 'var(--bg-root)' }}>
+          {loading && (
+            <div style={{
+              position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.85)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20,
+              backdropFilter: 'blur(4px)',
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <Loader2 style={{ width: 24, height: 24, color: 'var(--accent)', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
+                <p style={{ marginTop: 10, fontSize: 13, color: 'var(--text-tertiary)', fontWeight: 500 }}>그래프 로딩중...</p>
+              </div>
+            </div>
+          )}
+
+          {!graphData && !loading && (
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
+              <div className="dot-pattern" style={{ position: 'absolute', inset: 0, opacity: 0.4 }} />
+              <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 360 }}>
+                <Network style={{ width: 36, height: 36, color: 'var(--text-dim)', margin: '0 auto 16px', strokeWidth: 1.2 }} />
+                <h3 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Safety Knowledge Graph</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', lineHeight: 1.7 }}>
+                  좌측 패널에서 키워드를 검색하거나,<br />Quick Explore에서 사고 유형을 선택하세요.
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>노드를 더블클릭하면 관계망을 확장할 수 있습니다.</p>
+                <button
+                  onClick={() => setShowGuide(true)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    marginTop: 20, padding: '8px 20px', borderRadius: 8,
+                    border: '1px solid var(--accent-border)',
+                    background: 'var(--accent-muted)',
+                    color: 'var(--accent)', fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--accent-muted)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                >
+                  <BookOpen style={{ width: 14, height: 14 }} />
+                  활용가이드 보기
+                </button>
+              </div>
+            </div>
+          )}
+
+          <svg ref={svgRef} style={{ width: '100%', height: '100%', cursor: 'grab', display: graphData ? 'block' : 'none' }} />
+
+          {/* ── Legend (Moved from Header) ── */}
+          <div style={{
+            position: 'absolute', bottom: 14, left: 14, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
+            zIndex: 10,
+          }}>
+            {Object.entries(NODE_COLORS).map(([label, color]) => (
+              <div key={label} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                padding: '4px 10px', borderRadius: 16,
+                border: `1px solid ${color}30`, background: 'rgba(255, 255, 255, 0.85)',
+                backdropFilter: 'blur(4px)',
+                fontSize: 11, fontWeight: 600, color: color,
+                boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+              }}>
+                <div style={dot(color, 6)} />
+                <span>{NODE_KR[label]}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Stats badge */}
+          {graphData && (
+            <div style={{
+              position: 'absolute', bottom: 14, right: 14, display: 'flex', alignItems: 'center', gap: 8,
+              background: '#fff', border: '1px solid var(--border-default)', borderRadius: 8,
+              padding: '5px 12px', fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)',
+              fontFamily: "'Inter', monospace", zIndex: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            }}>
+              <span>{graphData.nodes.length} nodes</span>
+              <span style={{ color: 'var(--text-dim)' }}>·</span>
+              <span>{graphData.edges.length} edges</span>
+              {graphStats?.labelCounts && (
+                <>
+                  <span style={{ color: 'var(--text-dim)' }}>|</span>
+                  {Object.entries(graphStats.labelCounts as Record<string, number>)
+                    .filter(([label]) => label !== 'Accident')
+                    .map(([label, cnt]) => (
+                      <span key={label} style={{ color: NODE_COLORS[label] || '#9ca3af' }}>
+                        {NODE_KR[label]}: {cnt as number}
+                      </span>
+                    ))
+                  }
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── Node Detail Panel ── */}
+          {selectedNode && (
+            <div style={{
+              position: 'absolute', top: 14, right: 14, width: 300,
+              background: '#fff', border: '1px solid var(--border-default)',
+              borderRadius: 12, zIndex: 15, overflow: 'hidden',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+            }}>
+              <div style={{ padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-default)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <div style={dot(NODE_COLORS[selectedNode.label] || '#9ca3af', 9)} />
+                  <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: "'Inter', monospace" }}>
+                    {selectedNode.label}
+                  </span>
+                </div>
+                <button onClick={() => setSelectedNode(null)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+                >
+                  <X style={{ width: 14, height: 14 }} />
+                </button>
+              </div>
+              <div style={{ padding: '12px 14px', maxHeight: 400, overflowY: 'auto' }} className="custom-scrollbar">
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3, marginBottom: 3 }}>{selectedNode.name}</h3>
+                <p style={{ fontSize: 9.5, color: 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace", wordBreak: 'break-all', marginBottom: 12 }}>{selectedNode.id}</p>
+
+                {/* 1. Metadata rendering if available */}
+                {selectedNode.metadata && (() => {
+                  try {
+                    const meta = JSON.parse(selectedNode.metadata);
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                        {Object.entries(meta).map(([key, value]) => {
+                          if (!value || typeof value === 'object') return null;
+                          let displayKey = key, labelColor = 'var(--text-muted)';
+                          if (key === 'cause') { displayKey = '사고 원인'; labelColor = '#ef4444'; }
+                          if (key === 'prevention') { displayKey = '재발 방지'; labelColor = '#10b981'; }
+                          return (
+                            <div key={key}>
+                              <div style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: labelColor, marginBottom: 3, fontFamily: "'Inter', monospace" }}>{displayKey}</div>
+                              <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 6, padding: '6px 10px' }}>{String(value)}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  } catch { return null; }
+                })()}
+
+                {/* 2. Fallback info for non-metadata nodes (like ACCIDENTTYPE) */}
+                {(!selectedNode.metadata || selectedNode.metadata.trim() === '') && (() => {
+                  let infoText = "이 노드는 속성을 연결하는 핵심 카테고리 허브입니다. 관계망 확장을 클릭하여 연관 데이터를 확인하세요.";
+                  if (selectedNode.label === 'COMPANY') infoText = `선택된 시공사(${selectedNode.name})가 과거에 어떤 사고에 연루되었는지 확인하려면 하단의 확장 버튼을 클릭하세요.`;
+                  else if (selectedNode.label === 'LOCATION') infoText = `선택된 장소(${selectedNode.name})에서 과거에 어떤 사고가 발생했었는지 파악하려면 하단의 확장 버튼을 클릭하세요.`;
+                  else if (selectedNode.label === 'ACCIDENTTYPE') infoText = `이 사고 유형(${selectedNode.name})으로 분류된 최근 사고 사례들을 한눈에 보려면 하단의 확장 버튼을 클릭하세요.`;
+                  else if (selectedNode.label === 'AGENT') infoText = `이 관계자(${selectedNode.name}) 직무가 어떤 사고와 관련이 잦은지 파악하려면 확장 버튼을 누르세요.`;
+                  else if (selectedNode.label === 'COMPONENT') infoText = `이 기인물(${selectedNode.name})로 인해 촉발된 사고들의 구조를 확인하려면 관계망을 확장하세요.`;
+
+                  return (
+                    <div style={{ marginBottom: 16, padding: '10px 12px', background: 'var(--bg-elevated)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                         <div style={dot(NODE_COLORS[selectedNode.label] || 'var(--text-muted)', 6)} />
+                         {NODE_KR[selectedNode.label] || selectedNode.label} 상호작용 안내
+                       </div>
+                       <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                         {infoText}<br/><br/>
+                         <strong>💡 활용 팁:</strong> <strong>[관계망 확장]</strong> 시 이 노드가 캔버스 중앙에 배치되며 관련된 사고 데이터가 시각적으로 로드됩니다.
+                       </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 3. Expand Network Button */}
+                <button onClick={() => {
+                    const newMax = maxAccidents + 15;
+                    setMaxAccidents(newMax);
+                    loadSubGraph(selectedNode.id, depth, newMax);
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    width: '100%', padding: '9px 0', borderRadius: 7,
+                    border: '1px solid var(--accent-border)', background: 'var(--accent-muted)',
+                    color: 'var(--accent)', fontSize: 12, fontWeight: 600,
+                    cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--accent-muted)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                >
+                  <Network style={{ width: 14, height: 14 }} /> 더 넓은 범위로 관계망 확장 (+15건 추가)
+                </button>
+
+                {graphData && (() => {
+                  const connected = graphData.edges.filter((e: any) => e.source?.id === selectedNode.id || e.target?.id === selectedNode.id);
+                  if (connected.length === 0) return null;
+                  return (
+                    <div style={{ marginTop: 12, borderTop: '1px solid var(--border-default)', paddingTop: 10 }}>
+                      <div style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6, fontFamily: "'Inter', monospace" }}>연관 객체 ({connected.length})</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 120, overflowY: 'auto' }} className="custom-scrollbar">
+                        {connected.map((e: any, idx: number) => {
+                          const linked = (e.source?.id === selectedNode.id) ? e.target : e.source;
+                          return (
+                            <button key={idx} onClick={() => setSelectedNode(linked)}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 7, padding: '5px 6px', borderRadius: 5,
+                                width: '100%', textAlign: 'left', background: 'transparent', border: 'none',
+                                cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.1s',
+                              }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-input)'; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                            >
+                              <div style={dot(NODE_COLORS[linked?.label] || '#9ca3af', 5)} />
+                              <span style={{ flex: 1, fontSize: 11, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{linked?.name}</span>
+                              <span style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: "'Inter', monospace", flexShrink: 0 }}>{e.type}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════
+          GUIDE MODAL — 지식그래프 활용가이드
+         ══════════════════════════════════════ */}
+      {showGuide && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            background: 'rgba(0,0,0,0.35)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backdropFilter: 'blur(6px)',
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowGuide(false); }}
+        >
+          <div style={{
+            background: '#fff', borderRadius: 16,
+            width: '90%', maxWidth: 780, maxHeight: '85vh',
+            overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
+            border: '1px solid var(--border-default)',
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '20px 24px 16px',
+              borderBottom: '1px solid var(--border-default)',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+              background: 'var(--bg-elevated)',
+              flexShrink: 0,
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <BookOpen style={{ width: 18, height: 18, color: 'var(--accent)' }} />
+                  <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                    건설 안전 지식그래프 — 실무 활용 가이드
+                  </h2>
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                  38,412개 노드 · 171,789개 관계 · 12종 사고유형의 데이터를 실무에 활용하는 방법
+                </p>
+              </div>
+              <button
+                onClick={() => setShowGuide(false)}
+                style={{
+                  background: 'var(--bg-input)', border: '1px solid var(--border-default)',
+                  borderRadius: 8, padding: 6, cursor: 'pointer', color: 'var(--text-muted)',
+                  transition: 'all 0.12s', flexShrink: 0,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--border-hover)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-default)'; }}
+              >
+                <X style={{ width: 16, height: 16 }} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 24px' }} className="custom-scrollbar">
+
+              {/* Section Title */}
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12 }}>
+                📋 빠른 실행 (실무 활용 시나리오)
+              </h3>
+              <p style={{ fontSize: 12.5, color: 'var(--text-tertiary)', marginBottom: 16, lineHeight: 1.6 }}>
+                아래 액션 버튼을 클릭하면 모달이 닫히고 해당 시나리오의 2-hop 심층 분석 결과가 중앙 캔버스에 즉시 렌더링됩니다.
+              </p>
+
+              {/* Action Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
+                {GUIDE_ACTIONS.map((ga) => {
+                  const Icon = ga.icon;
+                  return (
+                    <div key={ga.num} style={{
+                      border: '1px solid var(--border-default)',
+                      borderRadius: 12, overflow: 'hidden',
+                      transition: 'all 0.15s ease',
+                      background: '#fff',
+                    }}>
+                      {/* Card header */}
+                      <div style={{
+                        padding: '14px 16px 10px',
+                        borderBottom: '1px solid var(--border-subtle)',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <div style={{
+                            width: 28, height: 28, borderRadius: 7,
+                            background: `${ga.color}12`, border: `1px solid ${ga.color}25`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <Icon style={{ width: 14, height: 14, color: ga.color }} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                              활용 {ga.num}. {ga.title}
+                            </div>
+                            <div style={{ fontSize: 10, color: ga.color, fontWeight: 600, letterSpacing: '0.04em', marginTop: 1 }}>
+                              {ga.subtitle}
+                            </div>
+                          </div>
+                        </div>
+                        <p style={{ fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.65, marginTop: 4 }}>
+                          {ga.desc}
+                        </p>
+                      </div>
+
+                      {/* Action button */}
+                      <div style={{ padding: '10px 16px' }}>
+                        <button
+                          onClick={() => handleGuideAction(ga.action)}
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                            width: '100%', padding: '9px 0', borderRadius: 8,
+                            border: `1px solid ${ga.color}30`,
+                            background: `${ga.color}08`,
+                            color: ga.color, fontSize: 12.5, fontWeight: 600,
+                            cursor: 'pointer', fontFamily: 'inherit',
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = ga.color;
+                            e.currentTarget.style.color = '#fff';
+                            e.currentTarget.style.borderColor = ga.color;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = `${ga.color}08`;
+                            e.currentTarget.style.color = ga.color;
+                            e.currentTarget.style.borderColor = `${ga.color}30`;
+                          }}
+                        >
+                          <Play style={{ width: 13, height: 13 }} />
+                          활용 {ga.num} 버튼 (그래프 렌더링)
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Graph Structure */}
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Network style={{ width: 14, height: 14, color: 'var(--accent)' }} />
+                  그래프 구조
+                </h3>
+                <div style={{
+                  background: 'var(--bg-input)', border: '1px solid var(--border-default)',
+                  borderRadius: 10, padding: 16,
+                  fontFamily: "'JetBrains Mono', 'Consolas', monospace",
+                  fontSize: 12, lineHeight: 2,
+                  color: 'var(--text-secondary)',
+                }}>
+                  <div>사고 ──<span style={{ color: '#2563eb' }}>[MANAGED_BY]</span>──→ <span style={{ color: '#2563eb', fontWeight: 600 }}>시공사</span> <span style={{ color: 'var(--text-muted)' }}>(어느 회사에서?)</span></div>
+                  <div>사고 ──<span style={{ color: '#f59e0b' }}>[INVOLVED_AGENT]</span>──→ <span style={{ color: '#f59e0b', fontWeight: 600 }}>관계자</span> <span style={{ color: 'var(--text-muted)' }}>(누가 연루?)</span></div>
+                  <div>사고 ──<span style={{ color: '#10b981' }}>[OCCURRED_AT]</span>──→ <span style={{ color: '#10b981', fontWeight: 600 }}>장소</span> <span style={{ color: 'var(--text-muted)' }}>(어디서?)</span></div>
+                  <div>사고 ──<span style={{ color: '#8b5cf6' }}>[INVOLVES_OBJECT]</span>──→ <span style={{ color: '#8b5cf6', fontWeight: 600 }}>기인물</span> <span style={{ color: 'var(--text-muted)' }}>(무엇 때문?)</span></div>
+                  <div>사고 ──<span style={{ color: '#ec4899' }}>[RESULTED_IN]</span>──→ <span style={{ color: '#ec4899', fontWeight: 600 }}>사고유형</span> <span style={{ color: 'var(--text-muted)' }}>(어떤 종류?)</span></div>
+                </div>
+              </div>
+
+              {/* Usage Tips */}
+              <div style={{
+                background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10,
+                padding: '12px 16px', marginBottom: 24,
+                display: 'flex', alignItems: 'flex-start', gap: 10,
+              }}>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                  <span style={{ color: '#fff', fontSize: 11, fontWeight: 700 }}>i</span>
+                </div>
+                <div style={{ fontSize: 12.5, color: '#1e40af', lineHeight: 1.7 }}>
+                  <strong>사용 팁:</strong> 노드를 <strong>클릭</strong>하면 상세정보를 확인할 수 있고, <strong>더블클릭</strong>하면 해당 노드 중심으로 관계망이 확장됩니다. 좌측 패널의 "탐색 깊이"와 "사고 수" 컨트롤로 그래프 크기를 조절할 수 있습니다.
+                </div>
+              </div>
+
+              {/* Bottom note */}
+              <div style={{
+                background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10,
+                padding: '12px 16px',
+                display: 'flex', alignItems: 'flex-start', gap: 10,
+              }}>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                  <span style={{ color: '#fff', fontSize: 11, fontWeight: 700 }}>✓</span>
+                </div>
+                <div style={{ fontSize: 12.5, color: '#166534', lineHeight: 1.7 }}>
+                  <strong>향후 발전:</strong> AI 리스크 분석가와 연동하면 그래프에서 선택한 노드를 기반으로 자연어 위험 분석 리포트를 자동 생성하고, 안전관리계획서를 맞춤형으로 작성할 수 있습니다.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
