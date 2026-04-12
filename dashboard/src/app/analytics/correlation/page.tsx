@@ -71,7 +71,7 @@ export default function CorrelationPage() {
                   <RechartsTooltip 
                     cursor={{fill: 'rgba(226, 232, 240, 0.4)'}} 
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} 
-                    formatter={(value: number) => [value.toFixed(4), '상관계수 (r)']}
+                    formatter={(value: any) => [Number(value).toFixed(4), '상관계수 (r)']}
                   />
                   <Bar dataKey="r" barSize={12} radius={2}>
                     {chartData.map((entry, index) => (

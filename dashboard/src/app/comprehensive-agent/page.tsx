@@ -314,7 +314,7 @@ export default function ComprehensiveAgentPage() {
                       <div 
                         key={idx} 
                         onClick={() => handleSelectCompany(company)}
-                        style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, hover: { background: '#f8fafc'} }}
+                        style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}
                         onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                         onMouseLeave={e => e.currentTarget.style.background = '#fff'}
                       >
