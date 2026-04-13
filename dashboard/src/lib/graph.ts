@@ -1,11 +1,16 @@
-import Database from 'better-sqlite3';
-import path from 'path';
+import mysql from 'mysql2/promise';
 
-const DB_PATH = path.join(process.cwd(), 'src/data/safety_graph.db');
-
-export function getDb() {
-  return new Database(DB_PATH);
-}
+// Create a connection pool for MySQL (NCP DB)
+export const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  port: parseInt(process.env.MYSQL_PORT || '3306'),
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
 export interface Node {
   id: string;
@@ -20,98 +25,93 @@ export interface Edge {
   type: string;
 }
 
-export function searchEntities(query: string, limit = 20) {
-  const db = getDb();
-  const results = db.prepare(`
-    SELECT * FROM nodes 
+export async function searchEntities(query: string, limit = 20) {
+  const [rows] = await pool.query(
+    `SELECT * FROM nodes 
     WHERE name LIKE ? OR id LIKE ? 
-    LIMIT ?
-  `).all(`%${query}%`, `%${query}%`, limit) as Node[];
-  db.close();
-  return results;
+    LIMIT ?`,
+    [`%${query}%`, `%${query}%`, limit]
+  );
+  return rows as Node[];
 }
 
-export function getNeighbors(nodeId: string) {
-  const db = getDb();
-  const neighbors = db.prepare(`
-    SELECT n.*, e.type as relation_type, e.source, e.target
+export async function getNeighbors(nodeId: string) {
+  const [rows] = await pool.query(
+    `SELECT n.*, e.type as relation_type, e.source, e.target
     FROM nodes n
     JOIN edges e ON (e.source = n.id OR e.target = n.id)
     WHERE (e.source = ? OR e.target = ?)
     AND n.id != ?
-    LIMIT 100
-  `).all(nodeId, nodeId, nodeId);
-  db.close();
-  return neighbors;
+    LIMIT 100`,
+    [nodeId, nodeId, nodeId]
+  );
+  return rows;
 }
 
 /**
  * 1-hop subgraph: direct neighbors of a node.
  * maxEdges controls how many edges to fetch (default 150).
  */
-export function getSubGraph(nodeId: string, maxEdges = 150) {
-    const db = getDb();
+export async function getSubGraph(nodeId: string, maxEdges = 150) {
+    const [countResult]: any = await pool.query(
+        `SELECT COUNT(*) as cnt FROM edges WHERE source = ? OR target = ?`,
+        [nodeId, nodeId]
+    );
     
-    const countResult = db.prepare(
-        `SELECT COUNT(*) as cnt FROM edges WHERE source = ? OR target = ?`
-    ).get(nodeId, nodeId) as any;
-    
-    const totalEdges = countResult.cnt;
+    const totalEdges = countResult[0].cnt;
     
     let edges: Edge[];
     if (totalEdges > maxEdges) {
-        edges = db.prepare(`
+        const [rows] = await pool.query(`
             SELECT * FROM edges 
             WHERE source = ? OR target = ? 
-            ORDER BY RANDOM() 
+            ORDER BY RAND() 
             LIMIT ?
-        `).all(nodeId, nodeId, maxEdges) as Edge[];
+        `, [nodeId, nodeId, maxEdges]);
+        edges = rows as Edge[];
     } else {
-        edges = db.prepare(
-            `SELECT * FROM edges WHERE source = ? OR target = ?`
-        ).all(nodeId, nodeId) as Edge[];
+        const [rows] = await pool.query(
+            `SELECT * FROM edges WHERE source = ? OR target = ?`,
+            [nodeId, nodeId]
+        );
+        edges = rows as Edge[];
     }
     
-    let visitedNodes = new Set([nodeId]);
+    let visitedNodes = new Set<string>([nodeId]);
     edges.forEach(e => {
         visitedNodes.add(e.source);
         visitedNodes.add(e.target);
     });
     
-    const placeholders = Array.from(visitedNodes).map(() => '?').join(',');
-    const nodes = db.prepare(
-        `SELECT * FROM nodes WHERE id IN (${placeholders})`
-    ).all(...Array.from(visitedNodes)) as Node[];
+    const nodeList = Array.from(visitedNodes);
+    const placeholders = nodeList.map(() => '?').join(',');
+    const [nodes] = await pool.query(
+        `SELECT * FROM nodes WHERE id IN (${placeholders})`,
+        nodeList
+    );
     
-    db.close();
-    return { nodes, edges, totalEdges };
+    return { nodes: nodes as Node[], edges, totalEdges };
 }
 
 /**
  * 2-hop deep exploration: starts from a center node,
  * fetches direct neighbors, then fetches THEIR non-Accident neighbors
  * to reveal Companies, Agents, Locations, Components linked through accidents.
- *
- * This produces a rich multi-layer graph showing:
- *   AccidentType → Accidents → [Companies, Agents, Locations, Components]
- *
- * @param depth - 1 for standard, 2 for deep exploration
- * @param maxAccidents - max accident nodes to include per hop
  */
-export function getDeepSubGraph(
+export async function getDeepSubGraph(
     nodeId: string,
     depth: number = 2,
     maxAccidents: number = 30
 ) {
-    const db = getDb();
-    
     // ── Hop 1: Get accident nodes linked to this center node ──
-    const hop1Edges = db.prepare(`
+    const [hop1Rows] = await pool.query(`
         SELECT * FROM edges 
         WHERE source = ? OR target = ?
-        ORDER BY RANDOM()
+        ORDER BY RAND()
         LIMIT ?
-    `).all(nodeId, nodeId, maxAccidents) as Edge[];
+    `, [nodeId, nodeId, maxAccidents]);
+    
+    const hop1Edges = hop1Rows as Edge[];
     
     const allEdges: Edge[] = [...hop1Edges];
     const visitedNodes = new Set<string>([nodeId]);
@@ -130,12 +130,13 @@ export function getDeepSubGraph(
         const accList = Array.from(accidentNodes);
         const accPlaceholders = accList.map(() => '?').join(',');
         
-        const hop2Edges = db.prepare(`
+        const [hop2Rows] = await pool.query(`
             SELECT * FROM edges 
             WHERE source IN (${accPlaceholders})
             AND target != ?
-        `).all(...accList, nodeId) as Edge[];
+        `, [...accList, nodeId]);
         
+        const hop2Edges = hop2Rows as Edge[];
         hop2Edges.forEach(e => {
             allEdges.push(e);
             visitedNodes.add(e.source);
@@ -145,20 +146,24 @@ export function getDeepSubGraph(
     
     // ── Fetch all node records ──
     const nodeList = Array.from(visitedNodes);
-    const nodePlaceholders = nodeList.map(() => '?').join(',');
-    const nodes = db.prepare(
-        `SELECT * FROM nodes WHERE id IN (${nodePlaceholders})`
-    ).all(...nodeList) as Node[];
+    let nodesArr: Node[] = [];
+    if (nodeList.length > 0) {
+        const nodePlaceholders = nodeList.map(() => '?').join(',');
+        const [nodes] = await pool.query(
+            `SELECT * FROM nodes WHERE id IN (${nodePlaceholders})`,
+            nodeList
+        );
+        nodesArr = nodes as Node[];
+    }
     
     // ── Aggregate stats for the summary ──
     const labelCounts: Record<string, number> = {};
-    nodes.forEach(n => {
+    nodesArr.forEach(n => {
         labelCounts[n.label] = (labelCounts[n.label] || 0) + 1;
     });
     
-    db.close();
     return {
-        nodes,
+        nodes: nodesArr,
         edges: allEdges,
         totalEdges: allEdges.length,
         stats: {
@@ -169,11 +174,14 @@ export function getDeepSubGraph(
     };
 }
 
-export function getGraphStats() {
-    const db = getDb();
-    const nodeCount = (db.prepare('SELECT COUNT(*) as cnt FROM nodes').get() as any).cnt;
-    const edgeCount = (db.prepare('SELECT COUNT(*) as cnt FROM edges').get() as any).cnt;
-    const labelDist = db.prepare('SELECT label, COUNT(*) as cnt FROM nodes GROUP BY label ORDER BY cnt DESC').all();
-    db.close();
-    return { nodeCount, edgeCount, labelDist };
+export async function getGraphStats() {
+    const [nodeCntRows]: any = await pool.query('SELECT COUNT(*) as cnt FROM nodes');
+    const [edgeCntRows]: any = await pool.query('SELECT COUNT(*) as cnt FROM edges');
+    const [labelDistRows] = await pool.query('SELECT label, COUNT(*) as cnt FROM nodes GROUP BY label ORDER BY cnt DESC');
+    
+    return { 
+        nodeCount: nodeCntRows[0].cnt, 
+        edgeCount: edgeCntRows[0].cnt, 
+        labelDist: labelDistRows 
+    };
 }

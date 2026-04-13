@@ -9,17 +9,27 @@ import CardHeader from '@/components/CardHeader';
 export default function CorrelationPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string>('');
 
   useEffect(() => {
     fetch('/data/statistical_report.json')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(json => {
         setData(json.correlation);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Fetch error:", err);
+        setLoadError(err.message);
         setLoading(false);
       });
   }, []);
 
-  if (loading) return <div className="p-8 text-slate-500 font-medium">데이터 로딩 중...</div>;
+  if (loading) return <div className="p-8 text-slate-500 font-medium">데이터 로딩 중... ({loadError})</div>;
+  if (loadError) return <div className="p-8 text-red-500 font-medium">오류 발생: {loadError}</div>;
   if (!data) return <div className="p-8 text-red-500 font-medium">통계 데이터를 불러오지 못했습니다.</div>;
 
   // Filter top 30 strongest correlations

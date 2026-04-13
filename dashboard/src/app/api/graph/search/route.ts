@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   }
   
   try {
-    const nodes = searchEntities(q);
+    const nodes = await searchEntities(q);
     return NextResponse.json({ nodes });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

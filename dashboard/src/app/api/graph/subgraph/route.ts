@@ -15,8 +15,8 @@ export async function GET(request: Request) {
     // Use deep exploration by default (depth=2)
     // For simple 1-hop, pass depth=1
     const graph = depth >= 2
-      ? getDeepSubGraph(nodeId, depth, maxAccidents)
-      : getSubGraph(nodeId, maxAccidents);
+      ? await getDeepSubGraph(nodeId, depth, maxAccidents)
+      : await getSubGraph(nodeId, maxAccidents);
     return NextResponse.json(graph);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

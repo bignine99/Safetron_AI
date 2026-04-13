@@ -119,3 +119,19 @@
 
 ---
 **최종 결론**: 모든 데이터 시각화 준비 및 프론트엔드 프리미엄 프레임워크가 무수정 상태로 클라이언트에게 데모 가능한 모듈 형식으로 완벽 연동되었습니다. 내일 이어서 구체적인 실제 CSV 데이터 바인딩 및 RAG 챗봇 파이프라인의 실증 프롬프트 엔지니어링을 진행하겠습니다.
+
+### [오후 13:45] Alive 12-Step AI Pipeline 컴포넌트 분리 및 최적화
+- **정적 HTML 컴포넌트화**: 기존 `risk-intelligence/page.tsx` 내 하드코딩 되어 있던 "Alive 12-Step AI Pipeline" 100줄 상당의 코드 블록을 별도의 모듈화 된 React 컴포넌트(`<AlivePipeline />`)로 독립시켜 코드의 재사용성과 가독성을 대폭 향상했습니다.
+- **문구 업데이트**: 파이프라인 메인 타이틀의 수식어였던 "진정한 업무 비서"를 요구사항에 맞추어 **"빠르고 정확한 데이터 분석"**으로 텍스트 변경 완료했습니다.
+- **템플릿 리터럴 문법(Syntax Error) 디버깅**: LLM 코드 생성 간 백틱(``` ` ```)과 달러사인(`${}`)에 불필요하게 포함되었던 이스케이프 기호(`\`)로 인해 발생한 Next.js 렌더링 파싱 오류를 감지하고, Node.js Regex 스크립트를 즉석에서 실행해 전체 `.tsx` 파일 내 누락/오류 구문을 완벽히 일괄 소거하고 브라우저 통합 테스트를 성공시켰습니다.
+
+### [오후 13:55] GitHub 형상 관리 환경 셋업 및 Vercel 클라우드 배포 (Deployment)
+- **보안 설정 강화 (Zero-Leakage gitignore)**: `.env.local` 등 민감한 API Key와 `100MB`를 상회하는 `.raw_data`, 빌드 캐시, `*.db` 파일이 Public Repository에 노출되는 것을 막기 위해 최상위 폴더에 하드 보안이 적용된 `.gitignore`를 확립했습니다.
+- **Git Push & Security Scan**: 로컬 디렉터리를 초기화(init) 한 후 `bignine99/Safetron_AI` 원격 저장소 `main` 브랜치에 푸시를 성공했습니다. 업로드 전 강제 API Key 스캐닝(`AIza` 등 구글 API 인증값 노출 검증) 프로세스도 거쳐 보안 무결성을 검증했습니다.
+- **Vercel Cloud 웹앱 배포 가이드 제공**: 해당 GitHub 저장소를 Vercel 웹 플랫폼으로 퍼블리싱 시 빈 화면(Crash/404)이 뜨는 대표적인 원인인 **[Root Directory: dashboard 설정]**과 **[Environment Variables: GEMINI_API_KEY]** 매핑 과정을 유저 친화적인 스텝 바이 스텝으로 가이딩하여 웹 기반 프로덕션 런칭을 완료시켰습니다.
+
+### [오후 23:45] 배포 환경 마이그레이션: Vercel에서 네이버 클라우드 환경(NCP)으로 전환
+- **Vercel 배포 한계 돌파 (node-gyp 에러 확인)**: Vercel 배포 도중 `better-sqlite3` 패키지의 네이티브 C++ 환경 컴파일 제약 및 Serverless 아키텍처 특성으로 인한 타임아웃/메모리 부족(`npm warn deprecated prebuild-install...`) 오류가 지속 발생하는 것을 확인했습니다. AI/DB 파이프라인의 안전한 구동을 위해 사내 네이버 클라우드 서버(Ubuntu 24.04, vCPU 2, 8GB)로 배포 아키텍처를 전면 전환했습니다.
+- **NCP Linux 인프라 세팅 및 타입스크립트 에러 해결**: SSH 원격 접속 후 Node.js(20.x), PM2, `build-essential` 커스텀 설치 스크립트를 제공했습니다. 빌드(`npm run build`) 간 검출된 `analytics/correlation/page.tsx`의 Recharts 툴팁 인자 타입 에러(`formatter={(value: any)}`) 및 `comprehensive-agent/page.tsx` 내 사용불가한 인라인 속성 컴파일 에러(`hover: {...}`)를 수정하여 GitHub에 Push 후 서버에서 Pull 받아 무결성 빌드(Exit code: 0)를 달성했습니다.
+- **PM2 인스턴스 무중단 배포 및 ACG 포트 충돌 처리**: 서버에서 포트 검사 중, 이미 구동 중인 다른 플랫폼(`ninetynine-hub`) 서비스와 `80`번 웹 포트가 충돌(`EADDRINUSE`)하는 상황을 발견했습니다. 이를 우회하기 위해 `safetron-dashboard`의 호스팅 포트를 `3005` 포트로 동적 바인딩(`-p 3005`)하도록 PM2 프로세스 런처를 수정 적용했습니다.
+- **방화벽(ACG) Inbound 연결 승인**: 클라우드 인프라에 접근하기 위해 네이버 클라우드 대시보드에서 `ninetynine-public-subnet-default-acg` 규칙 내에 Inbound 승인 정책 (TCP, 0.0.0.0/0, Port: 3005)을 스크린샷 단위로 시각 검수하여 완전 개방 처리함으로써, 외부에서 자유롭게 대시보드에 접근할 수 있는 오픈 네트워크를 구성했습니다.

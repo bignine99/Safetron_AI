@@ -14,7 +14,7 @@ const accidentTypeData = [
   { name: '추락 (Fall)', value: 12500 },
   { name: '전도 (Slip/Trip)', value: 8300 },
   { name: '협착 (Caught In)', value: 6200 },
-  { name: '낙하/비래 (Struck By)', value: 5100 },
+  { name: '맞음 (Struck By)', value: 5100 },
   { name: '충돌 (Collision)', value: 4800 },
 ];
 

@@ -70,20 +70,35 @@ export default function AIAnalystPage() {
         body: JSON.stringify({ messages: [...messages, userMsg] })
       });
       
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
+      }
+      if (!res.body) throw new Error("No response body");
 
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: stripMarkdown(data.content), 
-        debug: data.debug 
-      }]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      
+      setMessages(prev => [...prev, { role: 'assistant', content: '', debug: null }]);
+      setLoading(false);
+
+      let fullText = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        fullText += decoder.decode(value, { stream: true });
+        setMessages(prev => {
+          const newMsg = [...prev];
+          newMsg[newMsg.length - 1].content = stripMarkdown(fullText);
+          return newMsg;
+        });
+      }
     } catch (err: any) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: `오류가 발생했습니다: ${err.message}` 
       }]);
-    } finally {
       setLoading(false);
     }
   };
