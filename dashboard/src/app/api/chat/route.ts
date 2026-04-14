@@ -13,7 +13,11 @@ export async function POST(request: Request) {
     // -------------------------------------------------------------
     // 단계 1: Gemini를 이용해 사용자 질의에서 "검색 핵심 키워드" 추출 (벡터DB 회피)
     // -------------------------------------------------------------
-    const keywordPrompt = `아래 사용자의 건설 안전 관련 질문에서 가장 중요한 핵심 명사(사고 유형이나 원인 등)를 딱 1개만 추출해줘. (예: 추락, 비계, 붕괴 등)\n질문: ${lastMessage}`;
+    const keywordPrompt = `아래 사용자의 질문에서 가장 중요한 검색용 핵심 명사를 딱 1개만 추출해줘. 
+만약 질문에 "선택된 노드 'OOO'" 또는 특정 회사/객체 명이 주어졌다면 반드시 그 특정 고유명사(예: 대성건축)를 추출해.
+그렇지 않다면 주요 사고 유형(예: 추락, 비계, 붕괴)을 추출해. 
+다른 설명 없이 단어 1개만 출력해.
+질문: ${lastMessage}`;
     const kwResult = await model.generateContent(keywordPrompt);
     const primaryKeyword = kwResult.response.text().replace(/[^가-힣a-zA-Z0-9]/g, '').trim() || "사고";
     
@@ -21,21 +25,20 @@ export async function POST(request: Request) {
     // 단계 2: MySQL DB에서 키워드를 기반으로 사고 노드(Node ID) 직접 검색
     // -------------------------------------------------------------
     const [rows] = await pool.query(
-        'SELECT id FROM nodes WHERE (label="Accident" OR label="RiskFactor") AND (name LIKE ? OR id LIKE ?) LIMIT 3', 
+        'SELECT id, name, label FROM nodes WHERE (name LIKE ? OR id LIKE ?) LIMIT 5', 
         [`%${primaryKeyword}%`, `%${primaryKeyword}%`]
     );
     
-    const uniqueIds = Array.from(new Set((rows as any[]).map(r => r.id)));
-    
     // -------------------------------------------------------------
-    // 단계 3: 추출된 N개의 핵심 사고 ID에 대해 MySQL 지식그래프망 통신
+    // 단계 3: 추출된 N개의 핵심 사고/객체 ID에 대해 MySQL 지식그래프망 통신
     // -------------------------------------------------------------
     let relationContext = "";
     
-    for (const id of uniqueIds) {
+    for (const row of rows as any[]) {
+        const id = row.id.toString();
         // 비동기로 MySQL 질의 처리
-        const neighbors = (await getNeighbors(id.toString())) as any[];
-        relationContext += `\n- 관련 사고 (${id})의 지식그래프 연관 노드들:\n`;
+        const neighbors = (await getNeighbors(id)) as any[];
+        relationContext += `\n- 검색된 핵심 노드 [${row.name}](유형:${row.label})의 지식그래프 연관 노드들:\n`;
         neighbors.forEach((nbr: any) => {
             relationContext += `  * [${nbr.label}] ${nbr.name} (관계망: ${nbr.relation_type})\n`;
             if (nbr.metadata) {

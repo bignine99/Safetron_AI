@@ -149,7 +149,16 @@ export default function AccidentExplorerPage() {
       const res = await fetch(
         `${basePath}/api/graph/subgraph?id=${encodeURIComponent(nodeId)}&depth=${useDepth}&max=${useMax}`
       );
-      const data = await res.json();
+      
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse JSON. Server returned:", text.substring(0, 200));
+        throw e;
+      }
+
       if (data.error) {
         console.error("API Error:", data.error);
         throw new Error(data.error);
