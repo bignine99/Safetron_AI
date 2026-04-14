@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/safetron';
 import { 
   Send, 
   Bot, 
@@ -64,7 +66,7 @@ export default function AIAnalystPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch(`${basePath}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: [...messages, userMsg] })

@@ -55,7 +55,7 @@ export default function Sidebar() {
         boxSizing: 'border-box',
       }}>
         <img 
-          src="/logo.jfif" 
+          src="/safetron/logo.jfif" 
           alt="Logo" 
           style={{ 
             height: collapsed ? 32 : 36, 

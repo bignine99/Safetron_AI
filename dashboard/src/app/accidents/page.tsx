@@ -12,6 +12,8 @@ import dynamic from 'next/dynamic';
 
 const ForceGraph3D = dynamic(() => import('react-force-graph-3d'), { ssr: false });
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/safetron';
+
 /* ─── Types ─── */
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string; name: string; label: string; metadata: string;
@@ -130,7 +132,7 @@ export default function AccidentExplorerPage() {
     if (!searchTerm.trim()) return;
     setSearching(true);
     try {
-      const res = await fetch(`/api/graph/search?q=${encodeURIComponent(searchTerm)}`);
+      const res = await fetch(`${basePath}/api/graph/search?q=${encodeURIComponent(searchTerm)}`);
       const data = await res.json();
       setSearchResults(data.nodes || []);
     } catch (err) { console.error(err); }
@@ -145,7 +147,7 @@ export default function AccidentExplorerPage() {
     const useMax = max ?? maxAccidents;
     try {
       const res = await fetch(
-        `/api/graph/subgraph?id=${encodeURIComponent(nodeId)}&depth=${useDepth}&max=${useMax}`
+        `${basePath}/api/graph/subgraph?id=${encodeURIComponent(nodeId)}&depth=${useDepth}&max=${useMax}`
       );
       const data = await res.json();
       if (data.error) {
