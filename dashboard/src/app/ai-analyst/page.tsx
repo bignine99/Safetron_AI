@@ -28,6 +28,14 @@ function stripMarkdown(text: string): string {
 export default function AIAnalystPage() {
   const [messages, setMessages] = React.useState<any[]>([]);
   const [input, setInput] = React.useState('');
+  
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q');
+      if (q) setInput(q);
+    }
+  }, []);
   const [loading, setLoading] = React.useState(false);
   const [loadingText, setLoadingText] = React.useState('Knowledge Graph 검색 중');
   const scrollRef = React.useRef<HTMLDivElement>(null);

@@ -585,7 +585,10 @@ export default function AccidentExplorerPage() {
                       border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                       boxShadow: `0 4px 12px ${(activeGuide?.color || '#002A7A')}40`
-                    }} onClick={() => { window.location.href = '/ai-analyst'; }}>
+                    }} onClick={() => { 
+                      const query = `[지식그래프 패턴 분석 의뢰] 선택된 노드 "${selectedNode.name}"(유형: ${selectedNode.label})와 관련된 사고 발생 패턴과 근본 원인을 심층 분석하고, 리스크 저감 대책을 제안해주세요.`;
+                      window.location.href = `${basePath}/ai-analyst?q=${encodeURIComponent(query)}`; 
+                    }}>
                       AI 리스크 분석가 심층 의뢰하기 <ChevronRight style={{ width: 16, height: 16 }} />
                     </button>
 
@@ -661,7 +664,12 @@ export default function AccidentExplorerPage() {
                       border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
                       marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                       boxShadow: `0 4px 12px ${(activeGuide?.color || '#002A7A')}40`
-                    }} onClick={() => { window.location.href = '/ai-analyst'; }}>
+                    }} onClick={() => { 
+                      const query = activeGuide 
+                        ? `[지식그래프 ${activeGuide.title} 의뢰] 현재 지식그래프에 나타난 패턴의 상세 원인과, 이를 최우선으로 해결하기 위한 현장 리스크 관리 방안을 제안해주세요.`
+                        : `[지식그래프 심층 의뢰] 렌더링된 사고 지식그래프 구성 요소들을 통해 유추할 수 있는 복합적인 현장 위험 패턴과, 안전보건관리체계 개선 방안을 분석해주세요.`;
+                      window.location.href = `${basePath}/ai-analyst?q=${encodeURIComponent(query)}`; 
+                    }}>
                       AI 리스크 분석가 심층 의뢰하기 <ChevronRight style={{ width: 16, height: 16 }} />
                     </button>
                   </div>
