@@ -106,6 +106,7 @@ export default function AccidentExplorerPage() {
   const [activeGuide, setActiveGuide] = useState<any>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [showAnalysisPanel, setShowAnalysisPanel] = useState(false);
+  const [showNodeAnalysisFor, setShowNodeAnalysisFor] = useState<GraphNode | null>(null);
   const fgRef = useRef<any>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [SpriteTextClass, setSpriteTextClass] = useState<any>(null);
@@ -143,6 +144,7 @@ export default function AccidentExplorerPage() {
     setLoading(true);
     setSearchResults([]);
     setSelectedNode(null);
+    setShowNodeAnalysisFor(null);
     const useDepth = d ?? depth;
     const useMax = max ?? maxAccidents;
     try {
@@ -466,14 +468,79 @@ export default function AccidentExplorerPage() {
           )}
 
           {/* ── Right Sidebar (Analysis OR Node Detail) ── */}
-          {(showAnalysisPanel || selectedNode) && (
+          {(showAnalysisPanel || selectedNode || showNodeAnalysisFor) && (
             <div style={{
               position: 'absolute', top: 0, bottom: 0, right: 0,
               width: 340, background: '#ffffff', borderLeft: '1px solid var(--border-default)',
               display: 'flex', flexDirection: 'column', zIndex: 12,
               boxShadow: '-4px 0 24px rgba(0,0,0,0.03)'
             }}>
-              {selectedNode ? (
+              {showNodeAnalysisFor ? (
+                /* ── Node Analysis Content ── */
+                <>
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Network style={{ width: 18, height: 18, color: '#8b5cf6' }} />
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
+                        노드 연결관계 분석
+                      </span>
+                    </div>
+                    <button onClick={() => { setShowNodeAnalysisFor(null); if (!showAnalysisPanel && !selectedNode) setShowAnalysisPanel(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                      <X style={{ width: 18, height: 18 }} />
+                    </button>
+                  </div>
+                  <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
+
+                    <button style={{
+                        width: '100%', padding: '10px', background: 'var(--bg-input)', color: 'var(--text-secondary)',
+                        border: '1px solid var(--border-default)', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                        marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      }} onClick={() => setShowNodeAnalysisFor(null)}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-input)'; }}
+                    >
+                      <ChevronLeft style={{ width: 16, height: 16 }} /> 상세 속성 정보로 뒤로가기
+                    </button>
+
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12 }}>{showNodeAnalysisFor.name}</h3>
+                    
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, background: 'var(--bg-input)', padding: '14px', borderRadius: 8, border: '1px solid var(--border-default)', marginBottom: 24 }}>
+                      현재 선택된 <strong>{showNodeAnalysisFor.name}</strong>({NODE_KR[showNodeAnalysisFor.label] || showNodeAnalysisFor.label})을 중심으로 연결된 복합적인 사고 궤적입니다.<br/><br/>
+                      이 지식그래프망은 연관된 시공사, 기인물, 장소, 사고유형 간의 교차 원인과 파생 관계를 구조적으로 시각화합니다.
+                    </div>
+
+                    <div style={{ marginBottom: 20 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Search style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
+                        패턴 해석 제언
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: 20, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.6, gap: 6, display: 'flex', flexDirection: 'column' }}>
+                        {showNodeAnalysisFor.label.toUpperCase() === 'COMPANY' ? (
+                          <><li>해당 시공사의 과거 이력에 특정한 종류의 사고나 기인물이 반복되고 있는지 확인하세요.</li><li>망에 특이한 허브 군집이 있다면 해당 영역이 리스크 파급의 출발점입니다.</li></>
+                        ) : showNodeAnalysisFor.label.toUpperCase() === 'COMPONENT' ? (
+                          <><li>이 기인물에서 파생된 사고들이 동일한 장소에서 주로 일어나는지 확인하세요.</li><li>물리적 통제 및 대체 장비 투입 여부를 평가하는 근거로 활용 가능합니다.</li></>
+                        ) : showNodeAnalysisFor.label.toUpperCase() === 'ACCIDENTTYPE' ? (
+                          <><li>해당 사고유형을 발생시키는 다빈도 시공사와 기인물 연결망을 확인하세요.</li><li>위험성 평가 및 교육 대상자에게 발생망의 구조적 성격을 시각적으로 전달하세요.</li></>
+                        ) : (
+                          <><li>선택된 객체를 매개로 어떤 추가적인 사고 패턴이 얽혀있는지 확인하세요.</li><li>유기적인 관계망의 중심에 놓여있을수록 현장 관리 강도를 격상하세요.</li></>
+                        )}
+                      </ul>
+                    </div>
+
+                    <button style={{
+                      width: '100%', padding: '12px', background: '#002A7A', color: '#fff',
+                      border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                      marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      boxShadow: `0 4px 12px #002A7A40`
+                    }} onClick={() => { 
+                      const query = `[지식그래프 심층 연결 의뢰] 선택된 노드 "${showNodeAnalysisFor.name}"에 관한 다중 연결망(장소, 기인물, 관계자, 시공사)의 구조적 리스크를 분석해주세요.`;
+                      window.location.href = `${basePath}/ai-analyst?q=${encodeURIComponent(query)}`; 
+                    }}>
+                      AI 리스크 분석가 심층 의뢰하기 <ChevronRight style={{ width: 16, height: 16 }} />
+                    </button>
+                  </div>
+                </>
+              ) : selectedNode ? (
                 /* ── Node Detail Content ── */
                 <>
                   <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
@@ -594,18 +661,14 @@ export default function AccidentExplorerPage() {
                       </button>
                     )}
 
-                    {selectedNode.label.toUpperCase() === 'COMPANY' && (
-                      <button style={{
-                        width: '100%', padding: '12px', background: '#2563eb', color: '#fff',
-                        border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                        marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        boxShadow: `0 4px 12px #2563eb40`
-                      }} onClick={() => { 
-                        window.location.href = `${basePath}/companies?company=${encodeURIComponent(selectedNode.name.replace('주식회사', '').trim())}`; 
-                      }}>
-                        <Building2 style={{ width: 16, height: 16 }} /> 시공사 리스크 프로파일 상세 보기
-                      </button>
-                    )}
+                    <button style={{
+                      width: '100%', padding: '12px', background: '#8b5cf6', color: '#fff',
+                      border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      boxShadow: `0 4px 12px #8b5cf640`, marginBottom: 12
+                    }} onClick={() => setShowNodeAnalysisFor(selectedNode)}>
+                      <Network style={{ width: 16, height: 16 }} /> 지식그래프 연결관계 분석 보기
+                    </button>
 
                     <button style={{
                       width: '100%', padding: '12px', background: activeGuide?.color || '#002A7A', color: '#fff',
