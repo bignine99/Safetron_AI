@@ -144,7 +144,6 @@ export default function AccidentExplorerPage() {
     setLoading(true);
     setSearchResults([]);
     setSelectedNode(null);
-    setShowNodeAnalysisFor(null);
     const useDepth = d ?? depth;
     const useMax = max ?? maxAccidents;
     try {
@@ -468,79 +467,14 @@ export default function AccidentExplorerPage() {
           )}
 
           {/* ── Right Sidebar (Analysis OR Node Detail) ── */}
-          {(showAnalysisPanel || selectedNode || showNodeAnalysisFor) && (
+          {(showAnalysisPanel || selectedNode) && (
             <div style={{
               position: 'absolute', top: 0, bottom: 0, right: 0,
               width: 340, background: '#ffffff', borderLeft: '1px solid var(--border-default)',
               display: 'flex', flexDirection: 'column', zIndex: 12,
               boxShadow: '-4px 0 24px rgba(0,0,0,0.03)'
             }}>
-              {showNodeAnalysisFor ? (
-                /* ── Node Analysis Content ── */
-                <>
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Network style={{ width: 18, height: 18, color: '#8b5cf6' }} />
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
-                        노드 연결관계 분석
-                      </span>
-                    </div>
-                    <button onClick={() => { setShowNodeAnalysisFor(null); if (!showAnalysisPanel && !selectedNode) setShowAnalysisPanel(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                      <X style={{ width: 18, height: 18 }} />
-                    </button>
-                  </div>
-                  <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }} className="custom-scrollbar">
-
-                    <button style={{
-                        width: '100%', padding: '10px', background: 'var(--bg-input)', color: 'var(--text-secondary)',
-                        border: '1px solid var(--border-default)', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                        marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      }} onClick={() => setShowNodeAnalysisFor(null)}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-input)'; }}
-                    >
-                      <ChevronLeft style={{ width: 16, height: 16 }} /> 상세 속성 정보로 뒤로가기
-                    </button>
-
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12 }}>{showNodeAnalysisFor.name}</h3>
-                    
-                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, background: 'var(--bg-input)', padding: '14px', borderRadius: 8, border: '1px solid var(--border-default)', marginBottom: 24 }}>
-                      현재 선택된 <strong>{showNodeAnalysisFor.name}</strong>({NODE_KR[showNodeAnalysisFor.label] || showNodeAnalysisFor.label})을 중심으로 연결된 복합적인 사고 궤적입니다.<br/><br/>
-                      이 지식그래프망은 연관된 시공사, 기인물, 장소, 사고유형 간의 교차 원인과 파생 관계를 구조적으로 시각화합니다.
-                    </div>
-
-                    <div style={{ marginBottom: 20 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Search style={{ width: 14, height: 14, color: 'var(--text-muted)' }} />
-                        패턴 해석 제언
-                      </div>
-                      <ul style={{ margin: 0, paddingLeft: 20, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.6, gap: 6, display: 'flex', flexDirection: 'column' }}>
-                        {showNodeAnalysisFor.label.toUpperCase() === 'COMPANY' ? (
-                          <><li>해당 시공사의 과거 이력에 특정한 종류의 사고나 기인물이 반복되고 있는지 확인하세요.</li><li>망에 특이한 허브 군집이 있다면 해당 영역이 리스크 파급의 출발점입니다.</li></>
-                        ) : showNodeAnalysisFor.label.toUpperCase() === 'COMPONENT' ? (
-                          <><li>이 기인물에서 파생된 사고들이 동일한 장소에서 주로 일어나는지 확인하세요.</li><li>물리적 통제 및 대체 장비 투입 여부를 평가하는 근거로 활용 가능합니다.</li></>
-                        ) : showNodeAnalysisFor.label.toUpperCase() === 'ACCIDENTTYPE' ? (
-                          <><li>해당 사고유형을 발생시키는 다빈도 시공사와 기인물 연결망을 확인하세요.</li><li>위험성 평가 및 교육 대상자에게 발생망의 구조적 성격을 시각적으로 전달하세요.</li></>
-                        ) : (
-                          <><li>선택된 객체를 매개로 어떤 추가적인 사고 패턴이 얽혀있는지 확인하세요.</li><li>유기적인 관계망의 중심에 놓여있을수록 현장 관리 강도를 격상하세요.</li></>
-                        )}
-                      </ul>
-                    </div>
-
-                    <button style={{
-                      width: '100%', padding: '12px', background: '#002A7A', color: '#fff',
-                      border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                      marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      boxShadow: `0 4px 12px #002A7A40`
-                    }} onClick={() => { 
-                      const query = `[지식그래프 심층 연결 의뢰] 선택된 노드 "${showNodeAnalysisFor.name}"에 관한 다중 연결망(장소, 기인물, 관계자, 시공사)의 구조적 리스크를 분석해주세요.`;
-                      window.location.href = `${basePath}/ai-analyst?q=${encodeURIComponent(query)}`; 
-                    }}>
-                      AI 리스크 분석가 심층 의뢰하기 <ChevronRight style={{ width: 16, height: 16 }} />
-                    </button>
-                  </div>
-                </>
-              ) : selectedNode ? (
+              {selectedNode ? (
                 /* ── Node Detail Content ── */
                 <>
                   <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
@@ -584,18 +518,48 @@ export default function AccidentExplorerPage() {
                       } catch { return null; }
                     })()}
 
-                    {/* Fallback info */}
-                    {(!selectedNode.metadata || (typeof selectedNode.metadata === 'string' && selectedNode.metadata.trim() === '') || (typeof selectedNode.metadata === 'object' && Object.keys(selectedNode.metadata).length === 0)) && (() => {
-                      let infoText = "이 노드는 속성을 연결하는 핵심 카테고리 허브입니다. 관계망 확장을 클릭하여 연관 데이터를 확인하세요.";
-                      if (selectedNode.label === 'COMPANY') infoText = `선택된 시공사(${selectedNode.name})가 과거에 어떤 사고에 연루되었는지 확인하려면 하단의 확장 버튼을 클릭하세요.`;
-                      else if (selectedNode.label === 'LOCATION') infoText = `선택된 장소(${selectedNode.name})에서 과거에 어떤 사고가 발생했었는지 파악하려면 하단의 확장 버튼을 클릭하세요.`;
-                      else if (selectedNode.label === 'ACCIDENTTYPE') infoText = `이 사고 유형(${selectedNode.name})으로 분류된 최근 사고 사례들을 한눈에 보려면 하단의 확장 버튼을 클릭하세요.`;
-                      else if (selectedNode.label === 'AGENT') infoText = `이 관계자(${selectedNode.name}) 직무가 어떤 사고와 관련이 잦은지 파악하려면 확장 버튼을 누르세요.`;
-                      else if (selectedNode.label === 'COMPONENT') infoText = `이 기인물(${selectedNode.name})로 인해 촉발된 사고들의 구조를 확인하려면 관계망을 확장하세요.`;
+                    {/* Derived info for non-accident hubs */}
+                    {(!selectedNode.metadata || (typeof selectedNode.metadata === 'string' && selectedNode.metadata.trim() === '') || (typeof selectedNode.metadata === 'object' && Object.keys(selectedNode.metadata).length === 0)) && graphData && (() => {
+                      const linkedAccidents = graphData.edges
+                        .filter((e: any) => e.source?.id === selectedNode.id || e.target?.id === selectedNode.id)
+                        .map((e: any) => (e.source?.id === selectedNode.id) ? e.target : e.source)
+                        .filter((n: any) => n?.label === 'Accident');
+                      
+                      let aggregatedCauses: string[] = [];
+                      let aggregatedPreventions: string[] = [];
+
+                      linkedAccidents.forEach((ac: any) => {
+                        if (ac.metadata) {
+                          try {
+                            const meta = typeof ac.metadata === 'string' ? JSON.parse(ac.metadata) : ac.metadata;
+                            if (meta.cause) aggregatedCauses.push(meta.cause);
+                            if (meta.prevention) aggregatedPreventions.push(meta.prevention);
+                          } catch {}
+                        }
+                      });
+
+                      const displayCause = aggregatedCauses.length > 0
+                        ? aggregatedCauses[0] + (aggregatedCauses.length > 1 ? ` (외 ${aggregatedCauses.length - 1}건의 복합 요인 관측)` : '')
+                        : `${selectedNode.name}에 대한 직접적인 관련 사고 원인을 데이터망에서 추출 중입니다. 확장 버튼을 클릭하세요.`;
+                      
+                      const displayPrev = aggregatedPreventions.length > 0
+                        ? aggregatedPreventions[0] + (aggregatedPreventions.length > 1 ? ` 등 포괄적인 현장 예방 통제 필요` : '')
+                        : `망을 확장하여 관련 사고 사례를 바탕으로 예방 대책을 도출해야 합니다.`;
 
                       return (
-                        <div style={{ marginBottom: 24, padding: '14px 16px', background: 'var(--bg-elevated)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{infoText}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+                          <div>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: '#ef4444', marginBottom: 6 }}>연관 주요 사고 원인</div>
+                            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '12px 14px' }}>
+                              {displayCause}
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: '#10b981', marginBottom: 6 }}>연관 재발 방지 대책</div>
+                            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 8, padding: '12px 14px' }}>
+                              {displayPrev}
+                            </div>
+                          </div>
                         </div>
                       );
                     })()}
@@ -661,14 +625,7 @@ export default function AccidentExplorerPage() {
                       </button>
                     )}
 
-                    <button style={{
-                      width: '100%', padding: '12px', background: '#8b5cf6', color: '#fff',
-                      border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      boxShadow: `0 4px 12px #8b5cf640`, marginBottom: 12
-                    }} onClick={() => setShowNodeAnalysisFor(selectedNode)}>
-                      <Network style={{ width: 16, height: 16 }} /> 지식그래프 연결관계 분석 보기
-                    </button>
+
 
                     <button style={{
                       width: '100%', padding: '12px', background: activeGuide?.color || '#002A7A', color: '#fff',
