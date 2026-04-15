@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Building2, Search, ShieldAlert, FileCheck, Play, Loader2, 
   FileText, CheckCircle2, Cpu, Info, X, BadgeDollarSign, HeartHandshake, Network, BookOpen, BarChart3, TrendingUp
@@ -69,6 +70,7 @@ const scatterOptions = {
 };
 
 export default function UnderwriterScorecard() {
+  const router = useRouter();
   const [selectedCompany, setSelectedCompany] = useState(MOCK_COMPANIES[0]);
   const [stage, setStage] = useState<'IDLE' | 'PROCESSING' | 'COMPLETE'>('IDLE');
   const [progress, setProgress] = useState(0);
@@ -281,6 +283,23 @@ export default function UnderwriterScorecard() {
                       <div style={{ fontSize: 48, fontWeight: 900, color: selectedCompany.penalty.startsWith('-') ? '#059669' : '#dc2626' }}>{selectedCompany.penalty}</div>
                     </div>
                   </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
+                  <button 
+                    onClick={() => router.push(`/coverage-heatmap?companyId=${selectedCompany.id}`)}
+                    style={{ background: '#b91c1c', color: '#ffffff', padding: '16px 48px', borderRadius: 8, fontSize: 18, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', border: 'none', boxShadow: '0 6px 16px rgba(185, 28, 28, 0.3)', animation: 'pulse 2s infinite' }}
+                  >
+                    <Layers size={24} color="#ffffff" />
+                    이 시공사의 특약 리스크 맵 생성 (Coverage Heatmap) →
+                  </button>
+                  <style>{`
+                    @keyframes pulse {
+                      0% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.4); }
+                      70% { box-shadow: 0 0 0 15px rgba(185, 28, 28, 0); }
+                      100% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0); }
+                    }
+                  `}</style>
                 </div>
 
                 {/* 4 Deep Dive Cards */}

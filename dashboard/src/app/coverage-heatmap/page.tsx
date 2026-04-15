@@ -14,23 +14,47 @@ ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend
 );
 
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+
 const MOCK_MATRIX_ROWS = ['해체/철거', '굴착/토공', '철근/콘크리트', '건축마감', '설비/전기'];
 const MOCK_MATRIX_COLS = ['시스템비계', '타워크레인', '토류벽/흙막이', '고소작업대'];
-const MATRIX_DATA = [
-  // 해체/철거
-  [95, 45, 60, 88],
-  // 굴착/토공
-  [20, 50, 92, 15],
-  // 철근/콘크리트
-  [76, 85, 30, 42],
-  // 건축마감
-  [82, 10, 15, 78],
-  // 설비/전기
-  [45, 20, 10, 65]
-];
 
+const COMPANY_HEATMAP_DATA: Record<string, any> = {
+  '1': {
+    name: '태영건설',
+    matrix: [
+      [95, 45, 60, 88], [20, 50, 92, 15], [76, 85, 30, 42], [82, 10, 15, 78], [45, 20, 10, 65]
+    ],
+    maxNodeText: { title: '해체/철거 + 시스템비계', desc: '손실 통제 임계점 돌파 구역입니다. 붕괴 및 다중 추락 사고의 95%가 해당 기인물 속성에서 파생되며, 예상 최대 손실액(PML)은 14.5억에 달합니다.' },
+    interaction: { corr: '+0.87', desc: '굴착 공종의 \'토류벽/흙막이\' 붕괴는 인접 구조물 손상 담보(Third-Party Liability) 청구와 매우 강력한 양의 상관관계를 갖습니다. 엄격한 특약 통제가 요구됩니다.' },
+    actuarial: { rate: '+125%', type: '할증', color: '#b91c1c', desc: '하이-리스크 노드가 3개 이상 점등된 현장입니다. 표준 영업 요율을 적용할 경우 인수 거절 대외 명분이 발생하며, 서브-리밋(Sub-Limit) 제약을 걸어야 합니다.' }
+  },
+  '2': {
+    name: '삼성종합건설',
+    matrix: [
+      [35, 10, 15, 22], [5, 20, 32, 5], [16, 25, 10, 12], [12, 10, 5, 28], [15, 10, 5, 15]
+    ],
+    maxNodeText: { title: '해체/철거 + 시스템비계 (통제됨)', desc: '치명적 노드가 존재하나 자사 안전관리 시스템에 의해 통제되고 있습니다. 발생 확률이 최저 수준이며 예상 최대 손실액은 1.1억에 불과합니다.' },
+    interaction: { corr: '+0.22', desc: '동시 다발적 붕괴 사고의 상관성이 사실상 차단되어 있습니다. 각 공종별 리스크 전이(Contagion) 현상이 발생하지 않습니다.' },
+    actuarial: { rate: '-20%', type: '할인', color: '#10b981', desc: '모든 노드가 그린(Low Risk) 또는 옐로우 존에 집중되어 있습니다. 타 보험사와의 경쟁에서 이기기 위한 선제적 20% 요율 인하를 강력히 권장합니다.' }
+  },
+  '3': {
+    name: '동부엔지니어링',
+    matrix: [
+      [85, 95, 60, 88], [95, 100, 98, 75], [76, 85, 80, 42], [82, 10, 15, 78], [65, 80, 60, 65]
+    ],
+    maxNodeText: { title: '굴착/토공 + 토류벽/흙막이', desc: '극상의 하드-레드 노드. 지하 굴착 중 대규모 토압 붕괴 및 주변 건물 싱크홀 리스크가 상존합니다. 예상 최대 손실금액 45.3억(PML).' },
+    interaction: { corr: '+0.95', desc: '굴착 현장에서 건설기계(타워크레인/크레인) 운용 시 지반 침하로 인한 2차 전도 붕괴 사고의 확실한 연결 고리(Edge)가 발견되었습니다.' },
+    actuarial: { rate: '+250%', type: '할증/인수제한', color: '#991b1b', desc: '리스크 한계치를 심각하게 초과했습니다. 기계적 인수 제한(Declination) 대상이나, 인수 불가피 시 기초율 대비 2.5배 할증 및 흙막이 붕괴 면책조항 필수 삽입.' }
+  }
+};
+
+const defaultData = COMPANY_HEATMAP_DATA['1'];
+
+// ...
 const WEATHER_CORRELATION = {
-  labels: ['정상 기온', '폭염(33℃+)', '한파(-10℃-)', '집중호우', '강풍(10m/s+)'],
+  labels: ['정상 기온', '폭염(33℃+)', '한파(-10℃-)', '집중호우(호우주의보)', '강풍(10m/s+)'],
   datasets: [
     {
       type: 'line' as const,
@@ -62,8 +86,12 @@ const weatherChartOptions: ChartOptions = {
   plugins: { legend: { position: 'top' as const } }
 };
 
-export default function CoverageHeatmap() {
+function CoverageHeatmapContent() {
   const [showGuide, setShowGuide] = useState(false);
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get('companyId') || '1';
+  const companyData = COMPANY_HEATMAP_DATA[companyId] || defaultData;
+  const matrixData = companyData.matrix;
 
   // Helper to calculate color intensity for heatmap cell
   const getCellColor = (value: number) => {
@@ -95,9 +123,9 @@ export default function CoverageHeatmap() {
       <div style={{ padding: '40px 32px', maxWidth: 1400, margin: '0 auto', width: '100%' }}>
         
         <div style={{ marginBottom: 32 }}>
-          <h2 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>지능형 사고 노드 교차 검증 (AI Node Intersection)</h2>
+          <h2 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a' }}>{companyData.name} - 지능형 사고 노드 교차 검증</h2>
           <p style={{ marginTop: 8, fontSize: 15, color: '#475569', maxWidth: 900, lineHeight: 1.6 }}>
-            과거 3.7만건의 중대재해 레코드에서 추출된 9대 클래스를 2차원 매트릭스로 투영하여 극단적 손실(Tail Risk) 구간을 식별합니다. 
+            해당 시공업체의 과거 중대재해 레코드에서 추출된 9대 클래스를 2차원 매트릭스로 투영하여 극단적 손실(Tail Risk) 구간을 식별합니다. 
             위험 지수(VaR Index)가 85를 초과하는 하드-레드 엣지(Hard-Red Edge) 구간은 인수 제한(Exclusion) 또는 징벌적 할증이 반드시 필요합니다.
           </p>
         </div>
@@ -105,16 +133,16 @@ export default function CoverageHeatmap() {
         {/* ══════════ KPI Ticker Cards ══════════ */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, marginBottom: 40 }}>
           
-          <div style={{ background: '#fff', padding: 24, borderRadius: 8, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', padding: 24, borderRadius: 8, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
               <div style={{ padding: 10, borderRadius: 8, background: '#fee2e2' }}><ShieldOff size={20} color="#b91c1c" /></div>
               <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>최대 노출 리스크 노드 (Max VaR Node)</h3>
             </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: '#b91c1c', marginBottom: 8, display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              해체/철거 <span style={{ color: '#cbd5e1' }}>+</span> 시스템비계
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#b91c1c', marginBottom: 8 }}>
+              {companyData.maxNodeText.title}
             </div>
             <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 6, border: '1px solid #e2e8f0' }}>
-               손실 통제 임계점 돌파 구역입니다. 붕괴 및 다중 추락 사고의 95%가 해당 기인물 속성에서 파생되며, 예상 최대 손실액(PML)은 14.5억에 달합니다. 
+               {companyData.maxNodeText.desc}
             </div>
           </div>
           
@@ -124,10 +152,10 @@ export default function CoverageHeatmap() {
               <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>복합공종 상호작용 위험 (Interaction Risk)</h3>
             </div>
             <div style={{ fontSize: 26, fontWeight: 800, color: '#4338ca', marginBottom: 8 }}>
-              상관계수 <span style={{ fontFamily: 'monospace' }}>ρ = +0.87</span>
+              상관계수 <span style={{ fontFamily: 'monospace' }}>ρ = {companyData.interaction.corr}</span>
             </div>
             <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 6, border: '1px solid #e2e8f0' }}>
-               굴착 공종의 '토류벽/흙막이' 붕괴는 인접 구조물 손상 담보(Third-Party Liability) 청구와 매우 강력한 양의 상관관계를 갖습니다. 엄격한 특약 통제가 요구됩니다.
+               {companyData.interaction.desc}
             </div>
           </div>
 
@@ -137,10 +165,10 @@ export default function CoverageHeatmap() {
               <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>시스템 계리 요율 방어 가이드 </h3>
             </div>
             <div style={{ fontSize: 26, fontWeight: 800, color: '#d97706', marginBottom: 8 }}>
-              기초율 대비 <span style={{ color: '#b91c1c' }}>+125%</span> 할증
+              기초율 대비 <span style={{ color: companyData.actuarial.color }}>{companyData.actuarial.rate}</span> {companyData.actuarial.type}
             </div>
             <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 6, border: '1px solid #e2e8f0' }}>
-               하이-리스크 노드가 3개 이상 점등된 현장입니다. 표준 영업 요율을 적용할 경우 인수 거절 대외 명분이 발생하며, 서브-리밋(Sub-Limit) 제약을 걸어야 합니다.
+               {companyData.actuarial.desc}
             </div>
           </div>
         </div>
@@ -166,7 +194,7 @@ export default function CoverageHeatmap() {
               {MOCK_MATRIX_ROWS.map((row, rIdx) => (
                 <div key={rIdx} style={{ display: 'flex', alignItems: 'center', minHeight: 64, borderBottom: '1px solid #f1f5f9' }}>
                   <div style={{ width: 140, fontWeight: 700, fontSize: 14, color: '#334155' }}>{row}</div>
-                  {MATRIX_DATA[rIdx].map((val, cIdx) => {
+                  {matrixData[rIdx].map((val: number, cIdx: number) => {
                     const style = getCellColor(val);
                     return (
                       <div key={cIdx} style={{ flex: 1, padding: '4px 8px' }}>
@@ -282,5 +310,13 @@ export default function CoverageHeatmap() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CoverageHeatmap() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Loading Coverage Heatmap...</div>}>
+      <CoverageHeatmapContent />
+    </Suspense>
   );
 }
