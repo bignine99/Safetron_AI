@@ -21,49 +21,44 @@ export default function CompanyCard({ company, onClick }: CompanyCardProps) {
 
   return (
     <div style={{ 
-      background: '#fff', 
-      border: '1px solid #e2e8f0', 
-      borderRadius: 8, 
+      background: 'var(--bg-elevated)', 
+      border: '1px solid var(--border-default)', 
+      borderRadius: 4, 
       display: 'flex', 
-      alignItems: 'center',
-      padding: '16px 20px',
-      gap: 16,
-      transition: 'all 0.2s',
+      flexDirection: 'column',
+      padding: '12px 14px',
+      gap: 8,
       cursor: 'pointer',
-      boxShadow: '0 1px 2px rgba(0,0,0,0.01)'
     }}
     onClick={() => onClick(company)}
     onMouseEnter={e => {
       e.currentTarget.style.borderColor = '#002A7A';
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 42, 122, 0.08)';
-      e.currentTarget.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.background = '#f8fafc';
     }}
     onMouseLeave={e => {
-      e.currentTarget.style.borderColor = '#e2e8f0';
-      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.01)';
-      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.borderColor = 'var(--border-default)';
+      e.currentTarget.style.background = 'var(--bg-elevated)';
     }}
     >
-      <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #f1f5f9' }}>
-        <Building2 style={{ width: 22, height: 22, color: '#002A7A' }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginRight: 8 }}>
+          {company.시공회사명}
+        </h3>
+        <div style={{ 
+          flexShrink: 0,
+          fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 2,
+          background: gradeBg, color: gradeColor, border: `1px solid ${gradeColor}30`
+        }}>
+          {company.보험료_등급 || '미평가'}
+        </div>
       </div>
       
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginRight: 12, marginTop: 2 }}>
-            {company.시공회사명}
-          </h3>
-          <div style={{ 
-            flexShrink: 0,
-            fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 6,
-            background: gradeBg, color: gradeColor
-          }}>
-            {company.보험료_등급 || '미평가'}
-          </div>
-        </div>
-        
-        <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
           {categoryLabel}
+        </span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+          Risk Idx: {Number(company.avg_risk_index).toFixed(2)}
         </span>
       </div>
     </div>

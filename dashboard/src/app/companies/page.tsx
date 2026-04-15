@@ -114,19 +114,15 @@ export default function CompaniesPage() {
       fontFamily: "'Pretendard', 'Inter', sans-serif",
       color: 'var(--text-secondary)', background: '#f8fafc', overflow: 'hidden'
     }}>
-      {/* ══════════ Header ══════════ */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        height: 80, boxSizing: 'border-box', padding: '0 40px', borderBottom: '1px solid rgba(0,0,0,0.1)',
-        background: '#002A7A', flexShrink: 0, position: 'relative', zIndex: 50
+        height: 64, boxSizing: 'border-box', padding: '0 32px', borderBottom: '1px solid var(--border-default)',
+        background: 'var(--bg-default)', flexShrink: 0, position: 'relative', zIndex: 50
       }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             시공사 리스크 결합 분석
           </h1>
-          <p style={{ fontSize: 11, color: '#93c5fd', letterSpacing: '0.08em', marginTop: 3 }}>
-            MASTER-DETAIL RISK PROFILES
-          </p>
         </div>
         
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -134,7 +130,7 @@ export default function CompaniesPage() {
           <div style={{ position: 'relative' }}>
             <button 
               onClick={() => { setOpenDropdown(openDropdown === 'general' ? null : 'general'); }}
-              style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+              style={{ padding: '6px 14px', background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
             >
               종합건설업 <ChevronDown size={14} />
             </button>
@@ -155,7 +151,7 @@ export default function CompaniesPage() {
           <div style={{ position: 'relative' }}>
             <button 
               onClick={() => { setOpenDropdown(openDropdown === 'spec' ? null : 'spec'); }}
-              style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+              style={{ padding: '6px 14px', background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
             >
               전문건설업 <ChevronDown size={14} />
             </button>
@@ -180,7 +176,7 @@ export default function CompaniesPage() {
               placeholder="Searched names..." 
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setSelectedCategory(null); }}
-              style={{ width: '100%', background: '#ffffff', border: '1px solid transparent', borderRadius: 8, padding: '8px 16px 8px 36px', color: '#0f172a', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 6, padding: '6px 14px 6px 36px', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
         </div>
@@ -254,128 +250,117 @@ export default function CompaniesPage() {
                </p>
             </div>
           ) : (
-            <div style={{ animation: 'slideUp 0.3s ease-out', maxWidth: 1200, margin: '0 auto' }}>
+            <div style={{ animation: 'slideUp 0.3s ease-out', maxWidth: 1000, margin: '0 0' }}>
               
               {/* Header Module */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
-                <div style={{ background: '#002A7A', padding: 16, borderRadius: 12 }}>
-                  <Building2 style={{ width: 36, height: 36, color: '#ffffff' }} />
-                </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-default)', paddingBottom: 20, marginBottom: 24 }}>
                 <div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-                    <h2 style={{ fontSize: 32, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>{selectedCompany.시공회사명}</h2>
-                    <span style={{ fontSize: 13, fontWeight: 800, padding: '4px 12px', borderRadius: 6, paddingTop: 6, background: selectedCompany.보험료_등급?.includes('S') ? 'rgba(16, 185, 129, 0.1)' : selectedCompany.보험료_등급?.includes('A') ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: selectedCompany.보험료_등급?.includes('S') ? '#10b981' : selectedCompany.보험료_등급?.includes('A') ? '#3b82f6' : '#ef4444' }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+                    <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{selectedCompany.시공회사명}</h2>
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: selectedCompany.보험료_등급?.includes('S') ? 'rgba(16, 185, 129, 0.1)' : selectedCompany.보험료_등급?.includes('A') ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: selectedCompany.보험료_등급?.includes('S') ? '#10b981' : selectedCompany.보험료_등급?.includes('A') ? '#3b82f6' : '#ef4444', border: `1px solid ${selectedCompany.보험료_등급?.includes('S') ? '#10b98130' : selectedCompany.보험료_등급?.includes('A') ? '#3b82f630' : '#ef444430'}` }}>
                       {selectedCompany.보험료_등급 || '미평가'} Grade
                     </span>
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 600, color: '#64748b' }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
                     {selectedCompany.categoryLabel}
                   </div>
                 </div>
               </div>
 
               {/* 1. Modal Info -> Company Panel */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 24, marginBottom: 32 }}>
-                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 28, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
-                   <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Building2 style={{ width: 20, height: 20, color: '#64748b' }} />
-                    시공사 일반 제원
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 20, marginBottom: 32 }}>
+                {/* 일반 제원 */}
+                <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 6, padding: 20 }}>
+                   <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16, borderBottom: '1px solid var(--border-subtle)', paddingBottom: 8 }}>
+                    [A.01] 시공사 일반 제원
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                    <div style={{ background: '#f8fafc', padding: 20, borderRadius: 8, border: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>신용등급</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginTop: 4 }}>{selectedCompany.신용등급 || '-'}</div>
-                    </div>
-                    <div style={{ background: '#f8fafc', padding: 20, borderRadius: 8, border: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>직원규모</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginTop: 4 }}>{selectedCompany.직원규모 || '-'}</div>
-                    </div>
-                    <div style={{ background: '#f8fafc', padding: 20, borderRadius: 8, border: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>연매출규모</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginTop: 4 }}>{selectedCompany.연매출규모 || '-'}</div>
-                    </div>
-                    <div style={{ background: '#f8fafc', padding: 20, borderRadius: 8, border: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>안전인증보유</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginTop: 4 }}>{selectedCompany.안전인증보유 || '-'}</div>
-                    </div>
-                  </div>
+                  <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                    <tbody>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '8px 0', color: 'var(--text-secondary)', width: '40%' }}>신용등급</td>
+                        <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 600, textAlign: 'right' }}>{selectedCompany.신용등급 || '-'}</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '8px 0', color: 'var(--text-secondary)' }}>직원규모</td>
+                        <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 600, textAlign: 'right' }}>{selectedCompany.직원규모 || '-'}</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '8px 0', color: 'var(--text-secondary)' }}>연매출규모</td>
+                        <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 600, textAlign: 'right' }}>{selectedCompany.연매출규모 || '-'}</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '8px 0', color: 'var(--text-secondary)' }}>안전인증보유</td>
+                        <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 600, textAlign: 'right' }}>{selectedCompany.안전인증보유 || '-'}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
-                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 28, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
-                   <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <ShieldAlert style={{ width: 20, height: 20, color: '#ef4444' }} />
-                    안전 및 사고 레퍼런스
+                {/* 안전 레퍼런스 */}
+                <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 6, padding: 20 }}>
+                   <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16, borderBottom: '1px solid var(--border-subtle)', paddingBottom: 8 }}>
+                    [A.02] 안전 및 사고 지표
                   </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '18px 20px', background: '#f8fafc', borderRadius: 8, border: '1px solid #f1f5f9' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><AlertTriangle size={18} color="#f59e0b" /><span style={{ fontSize: 14, fontWeight: 600, color: '#475569' }}>평균 사고위험도 (Avg Index)</span></div>
-                      <div style={{ fontSize: 18, fontWeight: 800 }}>{Number(selectedCompany.avg_risk_index).toFixed(2)}</div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '18px 20px', background: '#f8fafc', borderRadius: 8, border: '1px solid #f1f5f9' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><TrendingUp size={18} color="#3b82f6" /><span style={{ fontSize: 14, fontWeight: 600, color: '#475569' }}>산업재해율 (Accident Rate)</span></div>
-                      <div style={{ fontSize: 18, fontWeight: 800 }}>{selectedCompany['산업재해율(%)'] || 0}%</div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '18px 20px', background: '#f8fafc', borderRadius: 8, border: '1px solid #f1f5f9' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><FileText size={18} color="#64748b" /><span style={{ fontSize: 14, fontWeight: 600, color: '#475569' }}>최근 10년 사망사고건수</span></div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: selectedCompany.최근10년사망사고건수 > 0 ? '#ef4444' : '#10b981' }}>{selectedCompany.최근10년사망사고건수}건</div>
-                    </div>
-                  </div>
+                  <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                    <tbody>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '8px 0', color: 'var(--text-secondary)', width: '50%' }}>종합 사고위험도 (Idx)</td>
+                        <td style={{ padding: '8px 0', color: '#f59e0b', fontWeight: 700, textAlign: 'right' }}>{Number(selectedCompany.avg_risk_index).toFixed(2)}</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '8px 0', color: 'var(--text-secondary)' }}>산업재해율</td>
+                        <td style={{ padding: '8px 0', color: 'var(--text-primary)', fontWeight: 600, textAlign: 'right' }}>{selectedCompany['산업재해율(%)'] || 0}%</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '8px 0', color: 'var(--text-secondary)' }}>10개년 치명결함건수</td>
+                        <td style={{ padding: '8px 0', color: selectedCompany.최근10년사망사고건수 > 0 ? '#ef4444' : 'var(--text-primary)', fontWeight: 600, textAlign: 'right' }}>{selectedCompany.최근10년사망사고건수}건</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
               {/* 2. Financial Info -> Top 4 Cards */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, marginTop: 40 }}>
-                 <DollarSign size={24} color="#0f172a" />
-                 <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>시공사 맞춤형 재무 리스크 분석</h2>
+              <div style={{ marginBottom: 20, marginTop: 32, borderBottom: '1px solid var(--border-subtle)', paddingBottom: 8 }}>
+                 <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>[B.01] 계량 리스크 관측지표</h2>
               </div>
               
               {(() => {
                 const fin = getFinancialData(selectedCompany);
                 return (
                   <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, marginBottom: 32 }}>
-                      <div style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
-                          <div style={{ background: '#dbeafe', padding: 8, borderRadius: 8 }}><DollarSign size={20} color="#3b82f6" /></div>
-                          <div style={{ fontWeight: 600, color: '#64748b', fontSize: 13 }}>사고당 평균 예측손실액</div>
-                        </div>
-                        <div style={{ fontSize: 28, fontWeight: 800 }}>₩ {fin.baseLoss.toFixed(1)} 억</div>
-                        <div style={{ fontSize: 12, color: '#ef4444', marginTop: 6, display: 'flex', alignItems: 'center', fontWeight: 600 }}><TrendingUp size={12} style={{ marginRight: 4 }}/> + 5% YoY 추이</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
+                      <div style={{ background: 'var(--bg-elevated)', padding: 16, border: '1px solid var(--border-default)', borderLeft: '3px solid #3b82f6' }}>
+                        <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: 11, marginBottom: 8 }}>예측손실 추정액 (Avg Claim)</div>
+                        <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>₩ {fin.baseLoss.toFixed(1)} 억</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>YoY: +5% variance</div>
                       </div>
                       
-                      <div style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
-                          <div style={{ background: '#fee2e2', padding: 8, borderRadius: 8 }}><Activity size={20} color="#ef4444" /></div>
-                          <div style={{ fontWeight: 600, color: '#64748b', fontSize: 13 }}>가장 치명적인 부상 유형</div>
-                        </div>
-                        <div style={{ fontSize: 26, fontWeight: 800, color: '#0f172a' }}>절단 <span style={{fontSize: 16, fontWeight:600}}>(Amputation)</span></div>
-                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, fontWeight: 600 }}>의료비/휴업보상 최고점 결합</div>
+                      <div style={{ background: 'var(--bg-elevated)', padding: 16, border: '1px solid var(--border-default)', borderLeft: '3px solid #ef4444' }}>
+                        <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: 11, marginBottom: 8 }}>치명 부상유형 계수</div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>절단 <span style={{fontSize: 12, fontWeight:500, color: 'var(--text-muted)'}}>(Amputation)</span></div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 8 }}>보상 최고점 결합모델</div>
                       </div>
 
-                      <div style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
-                          <div style={{ background: '#fef3c7', padding: 8, borderRadius: 8 }}><FileWarning size={20} color="#f59e0b" /></div>
-                          <div style={{ fontWeight: 600, color: '#64748b', fontSize: 13 }}>고위험 대책 부족사례</div>
-                        </div>
-                        <div style={{ fontSize: 28, fontWeight: 800, color: '#0f172a' }}>20% <span style={{fontSize: 16, fontWeight:600, color: '#64748b'}}>(Blacklist)</span></div>
-                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, fontWeight: 600 }}>과거 재발방지대책 AI 감성분석 기반</div>
+                      <div style={{ background: 'var(--bg-elevated)', padding: 16, border: '1px solid var(--border-default)', borderLeft: '3px solid #f59e0b' }}>
+                        <div style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: 11, marginBottom: 8 }}>대책 누락/부실 지표</div>
+                        <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>20.0%</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>감성분석 이상탐지 구간</div>
                       </div>
 
-                      <div style={{ background: '#0f172a', padding: 24, borderRadius: 12, border: '1px solid #1e293b', boxShadow: '0 10px 25px -5px rgba(0,42,122,0.3)', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                        <div>
-                          <h3 style={{ fontSize: 13, color: '#94a3b8', marginBottom: 6, fontWeight: 600 }}>AI 추천 최적 적립금비율</h3>
-                          <div style={{ fontSize: 44, fontWeight: 900, background: 'linear-gradient(to right, #60a5fa, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.1 }}>
-                            {fin.provisionRate}%
-                          </div>
+                      <div style={{ background: '#0f172a', padding: 16, border: '1px solid #1e293b', borderLeft: '3px solid #10b981', color: 'white' }}>
+                        <h3 style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8, fontWeight: 600 }}>권장 리스크 적립비율</h3>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: '#10b981' }}>
+                          {fin.provisionRate}%
                         </div>
-                        <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>최근 10년 손해율 및 재무모델 결합</div>
+                        <div style={{ fontSize: 10, color: '#64748b', marginTop: 4 }}>재무모델/액추어리 융합치</div>
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, paddingBottom: 60 }}>
-                      <div style={{ gridColumn: 'span 2', background: '#fff', padding: 32, borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                        <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 28, color: '#0f172a' }}>의학적 부상 결과별 보상 및 휴업 손실액 (Claim & Interruption)</h2>
-                        <div style={{ height: 320 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, paddingBottom: 60 }}>
+                      <div style={{ gridColumn: 'span 2', background: 'var(--bg-elevated)', padding: 20, border: '1px solid var(--border-default)' }}>
+                        <h2 style={{ fontSize: 13, fontWeight: 700, marginBottom: 20, color: 'var(--text-primary)' }}>부상유형별 손실 프로젝션 (의료비분배/휴업손실)</h2>
+                        <div style={{ height: 260 }}>
                           <Bar 
                             data={fin.claimSeverityMock} 
                             options={{ 
@@ -387,20 +372,20 @@ export default function CompaniesPage() {
                         </div>
                       </div>
 
-                      <div style={{ gridColumn: 'span 1', background: '#fff', padding: 32, borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                        <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20, color: '#0f172a', textAlign: 'center' }}>AI 재발방지대책 신뢰도 분포</h2>
-                        <div style={{ height: 300, position: 'relative' }}>
+                      <div style={{ gridColumn: 'span 1', background: 'var(--bg-elevated)', padding: 20, border: '1px solid var(--border-default)' }}>
+                        <h2 style={{ fontSize: 13, fontWeight: 700, marginBottom: 20, color: 'var(--text-primary)' }}>예방대책 NLP 신뢰구간</h2>
+                        <div style={{ height: 240, position: 'relative' }}>
                           <Doughnut 
                             data={fin.sentimentMock} 
                             options={{ 
                               maintainAspectRatio: false,
-                              cutout: '72%',
+                              cutout: '76%',
                               plugins: { legend: { position: 'bottom' } }
                             }} 
                           />
                           <div style={{ position: 'absolute', top: '42%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', width: '100%' }}>
-                            <div style={{ fontSize: 36, fontWeight: 800, color: '#0f172a' }}>{fin.sentimentMock.datasets[0].data[0]}%</div>
-                            <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>안전수준 적합</div>
+                            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{fin.sentimentMock.datasets[0].data[0]}%</div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>정상 수준</div>
                           </div>
                         </div>
                       </div>
