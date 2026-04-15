@@ -91,8 +91,8 @@ export default function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '8px 6px' : '8px 8px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <nav style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '4px 6px' : '4px 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -100,7 +100,7 @@ export default function Sidebar() {
               <Link key={item.href} href={item.href}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: collapsed ? '10px 0' : '9px 10px',
+                  padding: collapsed ? '8px 0' : '7px 10px',
                   justifyContent: collapsed ? 'center' : 'flex-start',
                   borderRadius: 8, textDecoration: 'none', transition: 'all 0.12s ease',
                   background: isActive ? 'var(--accent-muted)' : 'transparent',
@@ -110,11 +110,11 @@ export default function Sidebar() {
                 onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}}
                 onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}}
               >
-                <Icon style={{ width: 17, height: 17, flexShrink: 0 }} />
+                <Icon style={{ width: 16, height: 16, flexShrink: 0 }} />
                 {!collapsed && (
                   <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                    <span style={{ fontSize: 13, fontWeight: isActive ? 600 : 500, lineHeight: 1.3, color: isActive ? 'var(--text-primary)' : 'inherit' }}>{item.title}</span>
-                    <span style={{ fontSize: 9.5, color: 'var(--text-muted)', letterSpacing: '0.04em', marginTop: 1 }}>{item.subtitle}</span>
+                    <span style={{ fontSize: 12.5, fontWeight: isActive ? 600 : 500, lineHeight: 1.2, color: isActive ? 'var(--text-primary)' : 'inherit' }}>{item.title}</span>
+                    <span style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.04em', marginTop: 0 }}>{item.subtitle}</span>
                   </div>
                 )}
               </Link>
