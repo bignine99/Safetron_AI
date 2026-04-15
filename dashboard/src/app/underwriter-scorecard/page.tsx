@@ -91,25 +91,39 @@ export default function UnderwriterScorecard() {
 
     let currentProg = 0;
     const interval = setInterval(() => {
-      currentProg += Math.random() * 5; 
+      // Average 0.5 per tick, hitting 100 in ~200 ticks. At 30ms interval, takes ~6 seconds.
+      currentProg += Math.random() * 1.0; 
       if (currentProg >= 100) {
         currentProg = 100; clearInterval(interval);
         setTimeout(() => setStage('COMPLETE'), 500);
       }
       setProgress(currentProg);
       if (currentProg < 16) { setActiveStep(0); } else if (currentProg < 32) { setActiveStep(1); } else if (currentProg < 48) { setActiveStep(2); } else if (currentProg < 64) { setActiveStep(3); } else if (currentProg < 80) { setActiveStep(4); } else { setActiveStep(5); }
-      if (Math.random() > 0.65) {
-        const logs = [
-          `> [API-NICE] 5개년 신용/현금흐름 지표 정상 수신 (${selectedCompany.credit})`,
-          `> [CROSS-CHECK] 최근 3년 누적 사고 건수/사망 0건 판명. 패스.`,
-          `> [CERT] 인증 체계 유효성 AI 파악: ${selectedCompany.kosha} 확인됨.`,
-          `> [GRAPH] 3.7만건 노드 스캔 완료. 특정 공종 기인물 패턴 탐지(${selectedCompany.graphRisk}).`,
-          `> [MATH] 보험 요율 계리(Actuarial) 신경망 통과. 할증율 시뮬레이션 완료.`,
-          `> [DB] 시스템 적재 대기. 최종 스코어 결합 중...`
-        ];
-        setTerminalLogs(prev => [...prev, logs[Math.floor(Math.random() * logs.length)]]);
-      }
-    }, 120);
+      
+      const logs = [
+        `> [API-NICE] 5개년 신용/현금흐름 지표 정상 수신 (${selectedCompany.credit})`,
+        `> [CROSS-CHECK] 최근 3년 누적 사고 건수/사망 0건 판명. 패스.`,
+        `> [CERT] 인증 체계 유효성 AI 파악: ${selectedCompany.kosha} 확인됨.`,
+        `> [GRAPH] 3.7만건 노드 스캔 완료. 특정 공종 기인물 패턴 탐지(${selectedCompany.graphRisk}).`,
+        `> [MATH] 보험 요율 계리(Actuarial) 신경망 통과. 할증율 시뮬레이션 완료.`,
+        `> [DB] 시스템 적재 대기. 최종 스코어 결합 중...`,
+        `> [SYS] Allocated 8GB VRAM for heterogeneous graph attention networks.`,
+        `> [NET] DeepWalk embeddings generating... Step ${Math.floor(Math.random()*5000+1000)}...`,
+        `> [NLP] Parsing unstructured safety logs... confidence: ${(Math.random()*10+90).toFixed(2)}%`,
+        `> [CACHE] HDFS chunk memory hit. Skip cold read...`,
+        `> [MODEL] Forward pass iteration ${(Math.floor(currentProg*25))}... Loss: ${(Math.random()*0.1).toFixed(4)}`,
+        `> [INFERENCE] Edge prediction latency: ${(Math.random()*15 + 5).toFixed(2)}ms. Stable.`
+      ];
+      
+      // Generate multiple logs rapidly to simulate intense AI processing
+      const newLogsCount = Math.floor(Math.random() * 3) + 1;
+      const newLogs = Array.from({length: newLogsCount}, () => logs[Math.floor(Math.random() * logs.length)]);
+      
+      setTerminalLogs(prev => {
+        const nextLogs = [...prev, ...newLogs];
+        return nextLogs.slice(-40); 
+      });
+    }, 30);
   };
 
   const radarData = {
@@ -232,10 +246,10 @@ export default function UnderwriterScorecard() {
                   ))}
                 </div>
 
-                <div style={{ background: '#0f172a', borderRadius: 8, padding: 16, height: 160, overflowY: 'hidden', border: '1px solid #1e293b' }}>
-                  <div style={{ fontSize: 11, color: '#64748b', marginBottom: 8, borderBottom: '1px solid #334155', paddingBottom: 8, fontWeight: 700 }}>[ SYSTEM KERNEL MESSAGE IO ]</div>
-                  <div className="terminal-scroll" style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13, fontFamily: 'monospace', color: '#10b981' }}>
-                    {terminalLogs.slice(-7).map((log, i) => <div key={i}>{log}</div>)}<div className="animate-pulse">_</div>
+                <div style={{ background: '#0f172a', borderRadius: 8, padding: 16, height: 320, overflowY: 'hidden', border: '1px solid #1e293b', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', marginBottom: 8, borderBottom: '1px solid #334155', paddingBottom: 8, fontWeight: 700, flexShrink: 0 }}>[ SYSTEM KERNEL MESSAGE IO ]</div>
+                  <div className="terminal-scroll" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 6, fontSize: 13, fontFamily: 'monospace', color: '#10b981', flex: 1, overflow: 'hidden' }}>
+                    {terminalLogs.slice(-25).map((log, i) => <div key={i}>{log}</div>)}<div className="animate-pulse" style={{ marginTop: 4 }}>_</div>
                   </div>
                 </div>
               </div>
