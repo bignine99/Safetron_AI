@@ -594,6 +594,19 @@ export default function AccidentExplorerPage() {
                       </button>
                     )}
 
+                    {selectedNode.label.toUpperCase() === 'COMPANY' && (
+                      <button style={{
+                        width: '100%', padding: '12px', background: '#2563eb', color: '#fff',
+                        border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                        marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        boxShadow: `0 4px 12px #2563eb40`
+                      }} onClick={() => { 
+                        window.location.href = `${basePath}/companies?company=${encodeURIComponent(selectedNode.name.replace('주식회사', '').trim())}`; 
+                      }}>
+                        <Building2 style={{ width: 16, height: 16 }} /> 시공사 리스크 프로파일 상세 보기
+                      </button>
+                    )}
+
                     <button style={{
                       width: '100%', padding: '12px', background: activeGuide?.color || '#002A7A', color: '#fff',
                       border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
