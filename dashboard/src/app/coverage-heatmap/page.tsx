@@ -229,7 +229,7 @@ export default function CoverageHeatmap() {
               <CloudLightning size={18} color="#002A7A"/> 메타-기상 데이터와 잔여 손상도(Residual Damage)의 상관관계 함수
             </h3>
             <div style={{ height: 320 }}>
-              <Bar data={WEATHER_CORRELATION as any} options={weatherChartOptions} />
+              <Bar data={WEATHER_CORRELATION as any} options={weatherChartOptions as any} />
             </div>
           </div>
 
