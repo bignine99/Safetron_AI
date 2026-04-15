@@ -31,8 +31,8 @@ export default function CompaniesPage() {
       const charSum = company.시공회사명.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
       let cat = '';
       
-      if (company.전문공종 && company.전문공종 !== '일반건설') {
-        cat = company.전문공종; 
+      if ((company as any).전문공종 && (company as any).전문공종 !== '일반건설') {
+        cat = (company as any).전문공종; 
       } else if (company.시공회사명 === '(주)지평건설산업') {
         cat = '인테리어 전문건설업';
       } else {
