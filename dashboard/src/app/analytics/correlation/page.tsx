@@ -12,7 +12,7 @@ export default function CorrelationPage() {
   const [loadError, setLoadError] = useState<string>('');
 
   useEffect(() => {
-    fetch('/data/statistical_report.json')
+    fetch('/safetron/data/statistical_report.json')
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

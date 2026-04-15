@@ -12,13 +12,13 @@ export async function GET(request: Request) {
   }
   
   try {
-    // Use deep exploration by default (depth=2)
-    // For simple 1-hop, pass depth=1
+    console.log(`[GET /api/graph/subgraph] id=${nodeId}, depth=${depth}`);
     const graph = depth >= 2
       ? await getDeepSubGraph(nodeId, depth, maxAccidents)
       : await getSubGraph(nodeId, maxAccidents);
     return NextResponse.json(graph);
   } catch (error: any) {
+    console.error("[Subgraph API Error]:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

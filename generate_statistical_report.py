@@ -13,7 +13,7 @@ class NpEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray): return obj.tolist()
         return super(NpEncoder, self).default(obj)
 
-CSV_PATH = r'c:\Users\cho\Desktop\Temp\05_1_code\260410_safety_dashboard\.raw_data\cleaned_safety_data_07.csv'
+CSV_PATH = r'c:\Users\cho\Desktop\Temp\05_1_code\260410_safety_dashboard\.raw_data\08.csv'
 JSON_OUT_PATH = r'c:\Users\cho\Desktop\Temp\05_1_code\260410_safety_dashboard\dashboard\public\data\statistical_report.json'
 
 os.makedirs(os.path.dirname(JSON_OUT_PATH), exist_ok=True)
@@ -64,7 +64,7 @@ dependent_vars = ['피해금액_정규화(만원)', '작업중지일수(추정)'
 indep_numeric = ['온도', '습도', '연면적', '공정율', '작업자수_정규화(명)', '최근10년_사고건수', '최근10년_사망사고건수', '안전관리비_투자비율(%)', '하도급비율(%)', '산업재해율(%)']
 indep_numeric = [c for c in indep_numeric if c in df.columns]
 
-categorical_vars = ['도', '공공민간구분', '공사종류', '대공종_분류(표준)', '시설물 대분류', '사고위치 부위', '사고유형_분류(KOSHA)', '사고객체_분류(KOSHA)']
+categorical_vars = ['도', '공공민간구분', '공사종류', '대공종', '공사 분류', '시설물 분류', '사고위치 부위', '사고유형_분류(KOSHA)', '사고객체_분류(KOSHA)']
 
 out = {
     'descriptive': {'numeric': [], 'categorical': []},

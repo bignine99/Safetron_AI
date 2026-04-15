@@ -81,8 +81,18 @@ export default function AIAnalystPage() {
       });
       
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
+        const text = await res.text();
+        let errorMsg = `HTTP error! status: ${res.status}`;
+        try {
+          const errData = JSON.parse(text);
+          errorMsg = errData.error || errorMsg;
+        } catch (e) {
+          console.error("Non-JSON error response from server:", text.substring(0, 300));
+          if (text.trim().startsWith('<')) {
+            errorMsg = "서버 에러(HTML). Nginx 설정이나 서버 실행 상태를 확인하세요.";
+          }
+        }
+        throw new Error(errorMsg);
       }
       if (!res.body) throw new Error("No response body");
 

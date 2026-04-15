@@ -13,7 +13,7 @@ export default function RegressionPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/data/statistical_report.json')
+    fetch('/safetron/data/statistical_report.json')
       .then(res => res.json())
       .then(json => {
         setData(json.regression);

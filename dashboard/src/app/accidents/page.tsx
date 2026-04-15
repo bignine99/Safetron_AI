@@ -158,15 +158,20 @@ export default function AccidentExplorerPage() {
         console.error("Failed to parse JSON. Server returned:", text.substring(0, 200));
         throw e;
       }
-
       if (data.error) {
         console.error("API Error:", data.error);
         throw new Error(data.error);
       }
       setGraphData({ nodes: data.nodes || [], edges: data.edges || [] });
       setGraphStats(data.stats || null);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+    } catch (err: any) {
+      console.error("Subgraph Load Error:", err);
+      let msg = "그래프 데이터를 가져오는데 실패했습니다.";
+      if (err instanceof Error) msg += ` (${err.message})`;
+      else msg += " 서버가 응답하지 않거나 HTML 오류를 반환했습니다.";
+      
+      alert(msg);
+    } finally { setLoading(false); }
   }, [depth, maxAccidents]);
 
   /* Handle guide action click */

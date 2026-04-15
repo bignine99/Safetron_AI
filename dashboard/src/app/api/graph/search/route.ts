@@ -10,9 +10,11 @@ export async function GET(request: Request) {
   }
   
   try {
+    console.log(`[GET /api/graph/search] q=${q}`);
     const nodes = await searchEntities(q);
     return NextResponse.json({ nodes });
   } catch (error: any) {
+    console.error("[Search API Error]:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

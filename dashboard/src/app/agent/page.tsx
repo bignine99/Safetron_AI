@@ -22,7 +22,7 @@ export default function PredictionAgentPage() {
 
   useEffect(() => {
     // Fetch real statistical data to populate dropdowns
-    fetch('/data/statistical_report.json')
+    fetch('/safetron/data/statistical_report.json')
       .then(res => res.json())
       .then(data => {
         const catData = data.descriptive.categorical;
