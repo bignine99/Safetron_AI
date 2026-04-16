@@ -99,7 +99,8 @@ export default function PipelineWrapper() {
                 )}
                 <span style={{ 
                   fontSize: 12, fontWeight: isActive ? 700 : 500, 
-                  color: isActive ? 'var(--accent)' : (isCompleted ? 'var(--text-primary)' : 'var(--text-muted)') 
+                  color: isActive ? 'var(--accent)' : (isCompleted ? 'var(--text-primary)' : 'var(--text-muted)'),
+                  whiteSpace: 'nowrap'
                 }}>
                   {step.label}
                 </span>
