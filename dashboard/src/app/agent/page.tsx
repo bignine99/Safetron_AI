@@ -11,37 +11,90 @@ import {
   ArrowRight
 } from 'lucide-react';
 
+import companiesJson from '@/data/companies.json';
+
 export default function PredictionAgentPage() {
-  const [dataOpts, setDataOpts] = useState({ categories: [], processes: [], equipments: [], types: [] });
+  const [dataOpts, setDataOpts] = useState({ companies: [] as string[], categories: [] as string[], processes: [] as string[], types: [] as string[] });
+  const [company, setCompany] = useState('');
   const [category, setCategory] = useState('');
   const [process, setProcess] = useState('');
-  const [equipment, setEquipment] = useState('');
   
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    // Fetch real statistical data to populate dropdowns
-    fetch('/safetron/data/statistical_report.json')
-      .then(res => res.json())
-      .then(data => {
-        const catData = data.descriptive.categorical;
+    if (typeof window === 'undefined') return;
+
+    const fetchStats = fetch('/safetron/data/statistical_report.json').then(res => res.json());
+
+    const resolveContextAndData = async () => {
+      // 1. Resolve upstream context URL params
+      const sp = new URLSearchParams(window.location.search);
+      let targetName = sp.get('company');
+      const q = sp.get('q');
+      
+      if (!targetName && q) {
+        const match = q.match(/선택된 노드 "([^"]+)"/);
+        if (match) targetName = match[1];
+        else {
+          const simpleMatch = q.match(/"([^"]+)"/);
+          if (simpleMatch) targetName = simpleMatch[1];
+        }
+      }
+
+      let contextCompany = '';
+      if (targetName) {
+        contextCompany = targetName;
+        // Search downstream subgraph if Accident origin!
+        if (targetName.startsWith('Accident ')) {
+          try {
+            const nodeId = targetName.replace(/^Accident\s+/, '');
+            const basePath = window.location.pathname.startsWith('/safetron') ? '/safetron' : '';
+            const res = await fetch(`${basePath}/api/graph/subgraph?id=${encodeURIComponent(nodeId)}&depth=1`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.nodes) {
+                const cNode = data.nodes.find((n: any) => n.label === 'Company');
+                if (cNode) contextCompany = cNode.name;
+              }
+            }
+          } catch (e) {
+            console.error("Agent Subgraph resolution failed", e);
+          }
+        }
+      }
+
+      // 2. Resolve Statistical Data Dropdowns
+      try {
+        const statsData = await fetchStats;
+        const catData = statsData.descriptive.categorical;
         const findOpts = (featureName: string) => {
           const item = catData.find((d: any) => d.feature === featureName);
-          return item ? item.counts.map((c: any) => c.label).slice(0, 10) : [];
+          return item ? item.counts.map((c: any) => c.label).slice(0, 15) : [];
         };
 
         const cats = findOpts('공사종류');
-        const procs = findOpts('대공종_분류(표준)');
-        const equips = findOpts('사고객체_분류(KOSHA)');
+        const procs = findOpts('대공종');
         const types = findOpts('사고유형_분류(KOSHA)');
 
-        setDataOpts({ categories: cats, processes: procs, equipments: equips, types });
-        setCategory(cats[0] || '건축공사');
+        const sortedComps = [...companiesJson]
+          .sort((a,b) => (b['최근10년_사고건수'] || 0) - (a['최근10년_사고건수'] || 0))
+          .map(c => c['시공회사명']);
+        
+        if (contextCompany && !sortedComps.includes(contextCompany)) {
+          sortedComps.unshift(contextCompany);
+        }
+
+        setDataOpts({ companies: sortedComps, categories: cats, processes: procs, types });
+        setCompany(contextCompany || sortedComps[0] || '');
+        setCategory(cats[0] || '');
         setProcess(procs[0] || '');
-        setEquipment(equips[0] || '');
-      })
-      .catch(err => console.error(err));
+      } catch (err) {
+        console.error("Failed fetching statistical report for agent:", err);
+      }
+    };
+
+    resolveContextAndData();
   }, []);
 
   const handleSearch = () => {
@@ -65,7 +118,7 @@ export default function PredictionAgentPage() {
         if (parseFloat(expectedLoss) > 100) grade = 'A';
 
         results.push({
-          title: `[${type}] ${process} 중 ${equipment} 기인 사고`,
+          title: `[${type}] ${company} 현장 ${process} 중 돌발 위험`,
           freq,
           severity: severity.toFixed(2),
           expectedLoss,
@@ -167,6 +220,17 @@ export default function PredictionAgentPage() {
               {/* Form Config */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', marginBottom: 24 }}>
                 <div style={{ flex: 1, minWidth: 150, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>시공사</label>
+                  <select 
+                    value={company} onChange={e => setCompany(e.target.value)}
+                    style={{ padding: '10px', border: '1px solid var(--border-default)', borderRadius: 6, fontSize: 13, background: '#fff' }}
+                  >
+                    {dataOpts.companies.map(c => <option key={c} value={c}>{c}</option>)}
+                    {!dataOpts.companies.length && <option>로딩중...</option>}
+                  </select>
+                </div>
+
+                <div style={{ flex: 1, minWidth: 150, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>공사종류</label>
                   <select 
                     value={category} onChange={e => setCategory(e.target.value)}
@@ -178,24 +242,13 @@ export default function PredictionAgentPage() {
                 </div>
 
                 <div style={{ flex: 1, minWidth: 150, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>대공종 (프로세스)</label>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>대공종</label>
                   <select 
                     value={process} onChange={e => setProcess(e.target.value)}
                     style={{ padding: '10px', border: '1px solid var(--border-default)', borderRadius: 6, fontSize: 13, background: '#fff' }}
                   >
                     {dataOpts.processes.map(p => <option key={p} value={p}>{p}</option>)}
                     {!dataOpts.processes.length && <option>로딩중...</option>}
-                  </select>
-                </div>
-
-                <div style={{ flex: 1, minWidth: 150, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>사고객체 (장비/시설)</label>
-                  <select 
-                    value={equipment} onChange={e => setEquipment(e.target.value)}
-                    style={{ padding: '10px', border: '1px solid var(--border-default)', borderRadius: 6, fontSize: 13, background: '#fff' }}
-                  >
-                    {dataOpts.equipments.map(e => <option key={e} value={e}>{e}</option>)}
-                    {!dataOpts.equipments.length && <option>로딩중...</option>}
                   </select>
                 </div>
 
