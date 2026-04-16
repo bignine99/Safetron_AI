@@ -134,6 +134,17 @@ export default function CompaniesPage() {
     }
   }, [selectedCompany]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && processedCompanies.length > 0) {
+      const sp = new URLSearchParams(window.location.search);
+      const passedCompany = sp.get('company');
+      if (passedCompany && !selectedCompany) {
+        const match = processedCompanies.find(c => c.시공회사명.includes(passedCompany));
+        if (match) setSelectedCompany(match);
+      }
+    }
+  }, [processedCompanies]);
+
   const selectCategory = (cat: string) => {
     setSelectedCategory(cat);
     setSearchTerm('');

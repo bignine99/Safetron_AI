@@ -193,6 +193,22 @@ export default function AccidentExplorerPage() {
   /* 3D Force graph handles resizing internally and works directly with graphData */
   }, [graphData, loadSubGraph]);
 
+  // Pass active selection upstream into the URL to ensure full pipeline continuity
+  useEffect(() => {
+    if (typeof window !== 'undefined' && selectedNode) {
+      const url = new URL(window.location.href);
+      if (selectedNode.label === 'Company') {
+        url.searchParams.set('company', selectedNode.name);
+        url.searchParams.delete('q'); // clean up previous query
+      } else if (selectedNode.label === 'Accident') {
+        url.searchParams.set('q', `[지식그래프 의뢰] 선택된 노드 "${selectedNode.name}"(유형: ${selectedNode.label})`);
+      } else {
+        url.searchParams.set('q', `선택된 노드 "${selectedNode.name}"(유형: ${selectedNode.label})`);
+      }
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [selectedNode]);
+
   const dot = (color: string, size = 7) => ({
     width: size, height: size, borderRadius: '50%', background: color, flexShrink: 0 as const,
   });
@@ -641,7 +657,9 @@ export default function AccidentExplorerPage() {
                       boxShadow: `0 4px 12px ${(activeGuide?.color || '#002A7A')}40`
                     }} onClick={() => { 
                       const query = `[지식그래프 패턴 분석 의뢰] 선택된 노드 "${selectedNode.name}"(유형: ${selectedNode.label})와 관련된 사고 발생 패턴과 근본 원인을 심층 분석하고, 리스크 저감 대책을 제안해주세요.`;
-                      window.location.href = `${basePath}/ai-analyst?q=${encodeURIComponent(query)}`; 
+                      const sp = new URLSearchParams(window.location.search);
+                      sp.set('q', query);
+                      window.location.href = `${basePath}/ai-analyst?${sp.toString()}`; 
                     }}>
                       AI 리스크 심층 분석 <ChevronRight style={{ width: 16, height: 16 }} />
                     </button>
@@ -722,7 +740,9 @@ export default function AccidentExplorerPage() {
                       const query = activeGuide 
                         ? `[지식그래프 ${activeGuide.title} 의뢰] 현재 지식그래프에 나타난 패턴의 상세 원인과, 이를 최우선으로 해결하기 위한 현장 리스크 관리 방안을 제안해주세요.`
                         : `[지식그래프 심층 의뢰] 렌더링된 사고 지식그래프 구성 요소들을 통해 유추할 수 있는 복합적인 현장 위험 패턴과, 안전보건관리체계 개선 방안을 분석해주세요.`;
-                      window.location.href = `${basePath}/ai-analyst?q=${encodeURIComponent(query)}`; 
+                      const sp = new URLSearchParams(window.location.search);
+                      sp.set('q', query);
+                      window.location.href = `${basePath}/ai-analyst?${sp.toString()}`; 
                     }}>
                       AI 리스크 심층 분석 <ChevronRight style={{ width: 16, height: 16 }} />
                     </button>
