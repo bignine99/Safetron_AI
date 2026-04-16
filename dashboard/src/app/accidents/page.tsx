@@ -735,7 +735,7 @@ export default function AccidentExplorerPage() {
           {/* ── Legend (Moved from Header) ── */}
           <div style={{
             position: 'absolute', bottom: 14, left: 14, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
-            zIndex: 10,
+            zIndex: 10, maxWidth: '60%'
           }}>
             {Object.entries(NODE_COLORS).map(([label, color]) => (
               <div key={label} style={{
@@ -768,12 +768,17 @@ export default function AccidentExplorerPage() {
                   <span style={{ color: 'var(--text-dim)' }}>|</span>
                   {Object.entries(graphStats.labelCounts as Record<string, number>)
                     .filter(([label]) => label !== 'Accident')
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 4)
                     .map(([label, cnt]) => (
                       <span key={label} style={{ color: NODE_COLORS[label] || '#9ca3af' }}>
                         {NODE_KR[label] || label}: {cnt as number}
                       </span>
                     ))
                   }
+                  {Object.keys(graphStats.labelCounts).length > 5 && (
+                    <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>등 {Object.keys(graphStats.labelCounts).length - 1}종</span>
+                  )}
                 </>
               )}
             </div>
