@@ -643,7 +643,7 @@ export default function AccidentExplorerPage() {
                       const query = `[지식그래프 패턴 분석 의뢰] 선택된 노드 "${selectedNode.name}"(유형: ${selectedNode.label})와 관련된 사고 발생 패턴과 근본 원인을 심층 분석하고, 리스크 저감 대책을 제안해주세요.`;
                       window.location.href = `${basePath}/ai-analyst?q=${encodeURIComponent(query)}`; 
                     }}>
-                      AI 리스크 분석가 심층 의뢰하기 <ChevronRight style={{ width: 16, height: 16 }} />
+                      AI 리스크 심층 분석 <ChevronRight style={{ width: 16, height: 16 }} />
                     </button>
 
                   </div>
@@ -724,7 +724,7 @@ export default function AccidentExplorerPage() {
                         : `[지식그래프 심층 의뢰] 렌더링된 사고 지식그래프 구성 요소들을 통해 유추할 수 있는 복합적인 현장 위험 패턴과, 안전보건관리체계 개선 방안을 분석해주세요.`;
                       window.location.href = `${basePath}/ai-analyst?q=${encodeURIComponent(query)}`; 
                     }}>
-                      AI 리스크 분석가 심층 의뢰하기 <ChevronRight style={{ width: 16, height: 16 }} />
+                      AI 리스크 심층 분석 <ChevronRight style={{ width: 16, height: 16 }} />
                     </button>
                   </div>
                 </>
@@ -735,7 +735,7 @@ export default function AccidentExplorerPage() {
           {/* ── Legend (Moved from Header) ── */}
           <div style={{
             position: 'absolute', bottom: 14, left: 14, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
-            zIndex: 10, maxWidth: '60%'
+            zIndex: 50, maxWidth: '60%'
           }}>
             {Object.entries(NODE_COLORS).map(([label, color]) => (
               <div key={label} style={{

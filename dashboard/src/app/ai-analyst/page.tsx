@@ -125,7 +125,7 @@ export default function AIAnalystPage() {
 
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', height: '100vh',
+      display: 'flex', flexDirection: 'column', height: '100%',
       fontFamily: "'Pretendard', 'Inter', sans-serif",
       color: 'var(--text-secondary)', background: 'var(--bg-root)',
     }}>
