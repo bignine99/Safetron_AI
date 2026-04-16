@@ -80,6 +80,15 @@ export default function UnderwriterScorecard() {
   const [showGraphModal, setShowGraphModal] = useState(false);
   const [graphNodes, setGraphNodes] = useState<{id: string, color: string, x: number, y: number}[]>([]);
   
+  // Synchronize state changes to URL to pass context to the next pipeline module (Comprehensive Agent)
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && selectedCompany) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('company', selectedCompany.name);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [selectedCompany]);
+
   const processingSteps = [
     { title: "기업 기초정보 수집 및 OCR", desc: "사업자등록증, 재무제표, 도급계약서 텍스트 추출 중..." },
     { title: "재무/신용평가 자료 동기화", desc: "나이스평가정보(NICE) 기업 신용등급 실시간 API 연동..." },

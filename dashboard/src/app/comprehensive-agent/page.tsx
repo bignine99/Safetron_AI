@@ -159,8 +159,29 @@ export default function ComprehensiveAgentPage() {
         }
       });
       setIsSearching(false);
+      
+      // Sync URL
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('company', company['시공회사명']);
+        window.history.replaceState({}, '', url.toString());
+      }
     }, 800);
   };
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      const passedCompany = sp.get('company');
+      if (passedCompany) {
+        const dataset = Array.isArray(companiesDataset) ? companiesDataset : (companiesDataset as any)?.default || [];
+        const matchedCompany = dataset.find((c: any) => c['시공회사명'] && c['시공회사명'].includes(passedCompany));
+        if (matchedCompany) {
+          handleSelectCompany(matchedCompany);
+        }
+      }
+    }
+  }, [industryAvg]); // Run when industryAvg is computed (basically on mount)
 
   const handleSearch = () => {
     if (!searchTerm.trim()) return;
