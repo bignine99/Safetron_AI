@@ -49,8 +49,9 @@ export default function CompaniesPage() {
         // If it's an Accident node, fetch its subgraph to find associated company
         if (targetName.startsWith('Accident ')) {
           try {
+            const nodeId = targetName.replace(/^Accident\s+/, '');
             const basePath = window.location.pathname.startsWith('/safetron') ? '/safetron' : '';
-            const res = await fetch(`${basePath}/api/graph/subgraph?id=${encodeURIComponent(targetName)}&depth=1`);
+            const res = await fetch(`${basePath}/api/graph/subgraph?id=${encodeURIComponent(nodeId)}&depth=1`);
             if (res.ok) {
               const data = await res.json();
               if (data.nodes) {
