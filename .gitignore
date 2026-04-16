@@ -13,3 +13,13 @@ dashboard/.next/
 dashboard/out/
 dashboard/build/
 .DS_Store
+
+# Sensitive & Deploy Scripts
+*.pem
+*.log
+deploy_to_ncp.py
+check_server.py
+fix_*.py
+test_*.mjs
+test_*.js
+append_logs*.py
