@@ -60,13 +60,23 @@ def main():
         for line in f:
             item = json.loads(line)
             acc_id = item['고유코드']
-            ont = item['ontology']
+            
+            # Support both structure formats depending on parsing result
+            ont = item.get('ontology', {})
+            meta = item.get('meta', {})
+            
+            if not isinstance(ont, dict):
+                ont = {}
+            
+            # Ensure string types for lists returned as dicts or list in causes
+            cause_val = ont.get("사고원인", [])
+            cause_str = ", ".join(cause_val) if isinstance(cause_val, list) else str(cause_val)
             
             # Add Accident Node
             add_node(acc_id, f"Accident {acc_id}", "Accident", {
-                "cause": ont.get("사고원인", ""),
-                "action": ont.get("사고발생후조치", ""),
-                "prevention": ont.get("재발방지대책", "")
+                "cause": cause_str,
+                "action": "",
+                "prevention": ""
             })
             
             # Link to Company
@@ -75,28 +85,39 @@ def main():
                 add_edge(acc_id, f"CO_{co_name}", "MANAGED_BY")
             
             # Agent nodes
-            for agent in ont.get("누가", []):
-                agent_id = f"AGENT_{agent}"
-                add_node(agent_id, agent, "Agent")
-                add_edge(acc_id, agent_id, "INVOLVED_AGENT")
+            agents = ont.get("직책명", [])
+            if isinstance(agents, list):
+                for agent in agents:
+                    if not agent: continue
+                    agent_id = f"AGENT_{agent}"
+                    add_node(agent_id, agent, "Agent")
+                    add_edge(acc_id, agent_id, "INVOLVED_AGENT")
                 
             # Location nodes
-            for loc in ont.get("어디서", []):
-                loc_id = f"LOC_{loc}"
-                add_node(loc_id, loc, "Location")
-                add_edge(acc_id, loc_id, "OCCURRED_AT")
+            spaces = ont.get("사고공간", [])
+            if isinstance(spaces, list):
+                for loc in spaces:
+                    if not loc: continue
+                    loc_id = f"LOC_{loc}"
+                    add_node(loc_id, loc, "Location")
+                    add_edge(acc_id, loc_id, "OCCURRED_AT")
                 
-            # Object nodes
-            for obj in ont.get("무엇때문에", []):
+            # Object nodes (Component)
+            components = []
+            if isinstance(ont.get("사고기인물", []), list): components.extend(ont.get("사고기인물", []))
+            if isinstance(ont.get("도구", []), list): components.extend(ont.get("도구", []))
+            if isinstance(ont.get("장비", []), list): components.extend(ont.get("장비", []))
+            for obj in components:
+                if not obj: continue
                 obj_id = f"OBJ_{obj}"
                 add_node(obj_id, obj, "Component")
                 add_edge(acc_id, obj_id, "INVOLVES_OBJECT")
                 
-            # Result nodes
-            res = ont.get("사고결과", {}).get("유형")
-            if res:
-                res_id = f"TYPE_{res}"
-                add_node(res_id, res, "AccidentType")
+            # Result nodes / AccidentType
+            accident_type = meta.get("사고유형_KOSHA")
+            if accident_type:
+                res_id = f"TYPE_{accident_type}"
+                add_node(res_id, accident_type, "AccidentType")
                 add_edge(acc_id, res_id, "RESULTED_IN")
 
     # Batch insert
