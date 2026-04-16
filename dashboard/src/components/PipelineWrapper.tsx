@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ChevronRight, PlayCircle, CheckCircle2, Circle } from 'lucide-react';
 
 const PIPELINE_STEPS = [
+  { id: 'accidents', path: '/accidents', label: '사고 지식 그래프' },
   { id: 'ai-analyst', path: '/ai-analyst', label: 'AI 리스크 전문가' },
   { id: 'companies', path: '/companies', label: '시공사 리스크 분석' },
   { id: 'agent', path: '/agent', label: '위험도 예측 Agent' },

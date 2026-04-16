@@ -16,7 +16,6 @@ type NavItem =
 const navItems: NavItem[] = [
   { type: 'header', title: '데이터 분석 대시보드' },
   { type: 'link', icon: LayoutDashboard, title: '종합 요약', subtitle: 'Overview', href: '/' },
-  { type: 'link', icon: Zap, title: '사고 지식 그래프', subtitle: 'Knowledge Graph', href: '/accidents' },
   { type: 'link', icon: BarChart3, title: '사고 통계 현황', subtitle: 'Accident Stats', href: '/analytics/descriptive' },
   { type: 'link', icon: Network, title: '다변량 상관분석', subtitle: 'Correlation Models', href: '/analytics/correlation' },
   { type: 'link', icon: DatabaseZap, title: '심층 회귀분석', subtitle: 'Regression Models', href: '/analytics/regression' },
@@ -25,6 +24,7 @@ const navItems: NavItem[] = [
   { type: 'link', icon: Brain, title: 'Risk Intelligence', subtitle: 'Knowledge Graph', href: '/risk-intelligence' },
   
   { type: 'header', title: '심사 자동화 파이프라인' },
+  { type: 'link', icon: Zap, title: '사고 지식 그래프', subtitle: 'Knowledge Graph', href: '/accidents' },
   { type: 'link', icon: MessageSquare, title: 'AI 리스크 전문가', subtitle: 'AI Analyst', href: '/ai-analyst' },
   { type: 'link', icon: Building2, title: '시공사 리스크 분석', subtitle: 'Company Risk Profiles', href: '/companies' },
   { type: 'link', icon: Cpu, title: '위험도 예측 Agent', subtitle: 'Predictive Agent', href: '/agent' },
