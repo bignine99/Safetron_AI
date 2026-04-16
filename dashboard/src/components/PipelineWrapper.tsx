@@ -56,7 +56,7 @@ export default function PipelineWrapper() {
 
         {currentIndex < PIPELINE_STEPS.length - 1 && (
           <button 
-            onClick={() => router.push(PIPELINE_STEPS[currentIndex + 1].path)}
+            onClick={() => router.push(PIPELINE_STEPS[currentIndex + 1].path + window.location.search)}
             style={{
               padding: '6px 14px', borderRadius: 6, background: '#111827', color: '#fff',
               fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer',

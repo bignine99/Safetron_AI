@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import companies from '@/data/companies.json';
 import { Search, ChevronDown, DollarSign, Activity, FileWarning, TrendingUp, Building2, ShieldAlert, AlertTriangle, FileText, MousePointerClick } from 'lucide-react';
 import CompanyCard from '@/components/CompanyCard';
@@ -24,6 +24,65 @@ export default function CompaniesPage() {
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   
   const [openDropdown, setOpenDropdown] = useState<'general' | 'spec' | null>(null);
+
+  // Parse URL to extract company or selected node from previous pipeline steps
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const resolveContext = async () => {
+      const sp = new URLSearchParams(window.location.search);
+      let targetName = sp.get('company');
+      const q = sp.get('q');
+      
+      if (!targetName && q) {
+        const match = q.match(/선택된 노드 "([^"]+)"/);
+        if (match) targetName = match[1];
+        else {
+          const simpleMatch = q.match(/"([^"]+)"/);
+          if (simpleMatch) targetName = simpleMatch[1];
+        }
+      }
+
+      if (targetName) {
+        let companyToFind = targetName;
+        
+        // If it's an Accident node, fetch its subgraph to find associated company
+        if (targetName.startsWith('Accident ')) {
+          try {
+            const basePath = window.location.pathname.startsWith('/safetron') ? '/safetron' : '';
+            const res = await fetch(`${basePath}/api/graph/subgraph?id=${encodeURIComponent(targetName)}&depth=1`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.nodes) {
+                const companyNode = data.nodes.find((n: any) => n.label === 'Company');
+                if (companyNode) companyToFind = companyNode.name;
+              }
+            }
+          } catch (e) {
+            console.error("Failed to resolve company from accident:", e);
+          }
+        }
+
+        setSearchTerm(companyToFind);
+        
+        // Try to auto-select the company if exact match
+        const charSum = (nameStr: string) => nameStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const getCategory = (c: any) => {
+          if (c.전문공종 && c.전문공종 !== '일반건설') return c.전문공종;
+          if (c.시공회사명 === '(주)지평건설산업') return '인테리어 전문건설업';
+          const isGen = c.시공회사명.includes('종합') || c.시공회사명.includes('삼성') || c.시공회사명.includes('현대') || c.시공회사명.includes('건설산업') || c.시공회사명.includes('건설개발') || (charSum(c.시공회사명) % 3 === 0);
+          return isGen ? GENERAL_CATS[charSum(c.시공회사명) % GENERAL_CATS.length] + ' 종합건설업' : SPEC_CATS[charSum(c.시공회사명) % SPEC_CATS.length] + ' 전문건설업';
+        };
+
+        const matchedRaw = companies.find(c => c.시공회사명 === companyToFind || companyToFind.includes(c.시공회사명));
+        if (matchedRaw) {
+          setSelectedCompany({ ...matchedRaw, categoryLabel: getCategory(matchedRaw) });
+        }
+      }
+    };
+    
+    resolveContext();
+  }, []);
 
   // Derive category logic identical to CompanyCard
   const processedCompanies = useMemo(() => {
