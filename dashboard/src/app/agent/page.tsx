@@ -97,6 +97,15 @@ export default function PredictionAgentPage() {
     resolveContextAndData();
   }, []);
 
+  // Synchronize state changes to URL to pass context to the next pipeline module
+  useEffect(() => {
+    if (typeof window !== 'undefined' && company) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('company', company);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [company]);
+
   const handleSearch = () => {
     setIsSearching(true);
     setScenarios([]);

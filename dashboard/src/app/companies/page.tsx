@@ -126,6 +126,14 @@ export default function CompaniesPage() {
     setSelectedCompany(company);
   };
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && selectedCompany) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('company', selectedCompany.시공회사명);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [selectedCompany]);
+
   const selectCategory = (cat: string) => {
     setSelectedCategory(cat);
     setSearchTerm('');

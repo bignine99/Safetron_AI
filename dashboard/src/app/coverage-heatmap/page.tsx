@@ -89,8 +89,19 @@ const weatherChartOptions: ChartOptions = {
 function CoverageHeatmapContent() {
   const [showGuide, setShowGuide] = useState(false);
   const searchParams = useSearchParams();
-  const companyId = searchParams.get('companyId') || '1';
-  const companyData = COMPANY_HEATMAP_DATA[companyId] || defaultData;
+  
+  const passedCompany = searchParams.get('company');
+  let companyData = defaultData;
+  
+  if (passedCompany) {
+    const hash = passedCompany.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const index = (hash % 3) + 1; // Pick 1, 2, or 3
+    companyData = { ...COMPANY_HEATMAP_DATA[index.toString()], name: passedCompany };
+  } else {
+    const companyId = searchParams.get('companyId') || '1';
+    companyData = COMPANY_HEATMAP_DATA[companyId] || defaultData;
+  }
+
   const matrixData = companyData.matrix;
 
   // Helper to calculate color intensity for heatmap cell
