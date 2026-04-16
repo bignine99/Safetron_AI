@@ -9,21 +9,28 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const navItems = [
-  { icon: LayoutDashboard, title: '종합 요약', subtitle: 'Overview', href: '/' },
-  { icon: BarChart3, title: '사고 통계 현황', subtitle: 'Accident Stats', href: '/analytics/descriptive' },
-  { icon: Network, title: '다변량 상관분석', subtitle: 'Correlation Models', href: '/analytics/correlation' },
-  { icon: DatabaseZap, title: '심층 회귀분석', subtitle: 'Regression Models', href: '/analytics/regression' },
-  { icon: Map, title: '위험 지도', subtitle: 'Risk Map', href: '/risk-map' },
-  { icon: TrendingUp, title: '사고 추이 분석', subtitle: 'Accident Trends', href: '/trends' },
-  { icon: Zap, title: '사고 지식 그래프', subtitle: 'Knowledge Graph', href: '/accidents' },
-  { icon: MessageSquare, title: 'AI 리스크 분석가', subtitle: 'AI Analyst', href: '/ai-analyst' },
-  { icon: Building2, title: '시공사 리스크 분석', subtitle: 'Company Risk Profiles', href: '/companies' },
-  { icon: BadgeDollarSign, title: '보험 요율 심사', subtitle: 'Underwriting', href: '/underwriter-scorecard' },
-  { icon: CloudRain, title: '고위험 특약 맵', subtitle: 'Coverage Heatmap', href: '/coverage-heatmap' },
-  { icon: Cpu, title: '위험도 예측 Agent', subtitle: 'Predictive Agent', href: '/agent' },
-  { icon: ShieldCheck, title: '리스크 종합평가 Agent', subtitle: 'Comprehensive Agent', href: '/comprehensive-agent' },
-  { icon: Brain, title: 'Risk Intelligence', subtitle: 'Knowledge Graph', href: '/risk-intelligence' },
+type NavItem = 
+  | { type: 'header'; title: string }
+  | { type: 'link'; icon: React.ElementType; title: string; subtitle: string; href: string };
+
+const navItems: NavItem[] = [
+  { type: 'header', title: '데이터 분석 대시보드' },
+  { type: 'link', icon: LayoutDashboard, title: '종합 요약', subtitle: 'Overview', href: '/' },
+  { type: 'link', icon: Zap, title: '사고 지식 그래프', subtitle: 'Knowledge Graph', href: '/accidents' },
+  { type: 'link', icon: BarChart3, title: '사고 통계 현황', subtitle: 'Accident Stats', href: '/analytics/descriptive' },
+  { type: 'link', icon: Network, title: '다변량 상관분석', subtitle: 'Correlation Models', href: '/analytics/correlation' },
+  { type: 'link', icon: DatabaseZap, title: '심층 회귀분석', subtitle: 'Regression Models', href: '/analytics/regression' },
+  { type: 'link', icon: Map, title: '위험 지도', subtitle: 'Risk Map', href: '/risk-map' },
+  { type: 'link', icon: TrendingUp, title: '사고 추이 분석', subtitle: 'Accident Trends', href: '/trends' },
+  { type: 'link', icon: Brain, title: 'Risk Intelligence', subtitle: 'Knowledge Graph', href: '/risk-intelligence' },
+  
+  { type: 'header', title: '심사 자동화 파이프라인' },
+  { type: 'link', icon: MessageSquare, title: 'AI 리스크 전문가', subtitle: 'AI Analyst', href: '/ai-analyst' },
+  { type: 'link', icon: Building2, title: '시공사 리스크 분석', subtitle: 'Company Risk Profiles', href: '/companies' },
+  { type: 'link', icon: Cpu, title: '위험도 예측 Agent', subtitle: 'Predictive Agent', href: '/agent' },
+  { type: 'link', icon: CloudRain, title: '고위험 특약 맵', subtitle: 'Coverage Heatmap', href: '/coverage-heatmap' },
+  { type: 'link', icon: BadgeDollarSign, title: '보험 요율 심사', subtitle: 'Underwriting', href: '/underwriter-scorecard' },
+  { type: 'link', icon: ShieldCheck, title: '리스크 종합평가 Agent', subtitle: 'Comprehensive Agent', href: '/comprehensive-agent' },
 ];
 
 export default function Sidebar() {
@@ -91,9 +98,24 @@ export default function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '4px 6px' : '4px 8px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          {navItems.map((item) => {
+      <nav className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '4px 6px' : '4px 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {navItems.map((item, idx) => {
+            if (item.type === 'header') {
+              if (collapsed) return <div key={idx} style={{ height: 24 }} />;
+              return (
+                <div key={idx} style={{ 
+                  padding: '20px 12px 6px 12px', 
+                  fontSize: 11, 
+                  fontWeight: 700, 
+                  color: 'var(--text-muted)', 
+                  letterSpacing: '0.04em' 
+                }}>
+                  {item.title}
+                </div>
+              );
+            }
+
             const Icon = item.icon;
             const isActive = pathname === item.href;
             return (
@@ -114,7 +136,8 @@ export default function Sidebar() {
                 {!collapsed && (
                   <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                     <span style={{ fontSize: 12.5, fontWeight: isActive ? 600 : 500, lineHeight: 1.2, color: isActive ? 'var(--text-primary)' : 'inherit' }}>{item.title}</span>
-                    <span style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.04em', marginTop: 0 }}>{item.subtitle}</span>
+                    {/* Subtitles can be kept clean or slightly muted if desired */}
+                    <span style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.04em', marginTop: 1 }}>{item.subtitle}</span>
                   </div>
                 )}
               </Link>
