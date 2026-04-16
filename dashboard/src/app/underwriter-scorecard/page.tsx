@@ -77,6 +77,8 @@ export default function UnderwriterScorecard() {
   const [activeStep, setActiveStep] = useState(0);
   const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
   const [showGuide, setShowGuide] = useState(false);
+  const [showGraphModal, setShowGraphModal] = useState(false);
+  const [graphNodes, setGraphNodes] = useState<{id: string, color: string, x: number, y: number}[]>([]);
   
   const processingSteps = [
     { title: "기업 기초정보 수집 및 OCR", desc: "사업자등록증, 재무제표, 도급계약서 텍스트 추출 중..." },
@@ -89,12 +91,12 @@ export default function UnderwriterScorecard() {
 
   const handleStartSimulation = () => {
     setStage('PROCESSING'); setProgress(0); setActiveStep(0);
-    setTerminalLogs(["> [INIT] 보안 터널 접속 / AI 파이프라인 엔진 가동 시작"]);
+    setTerminalLogs(["> [EMERGENCY] 고위험 지식그래프망 스캐닝 가동 시작"]);
 
     let currentProg = 0;
     const interval = setInterval(() => {
-      // Average 0.5 per tick, hitting 100 in ~200 ticks. At 30ms interval, takes ~6 seconds.
-      currentProg += Math.random() * 1.0; 
+      // average 20% longer timeframe ~ 6 seconds
+      currentProg += Math.random() * 0.8; 
       if (currentProg >= 100) {
         currentProg = 100; clearInterval(interval);
         setTimeout(() => setStage('COMPLETE'), 500);
@@ -103,29 +105,38 @@ export default function UnderwriterScorecard() {
       if (currentProg < 16) { setActiveStep(0); } else if (currentProg < 32) { setActiveStep(1); } else if (currentProg < 48) { setActiveStep(2); } else if (currentProg < 64) { setActiveStep(3); } else if (currentProg < 80) { setActiveStep(4); } else { setActiveStep(5); }
       
       const logs = [
-        `> [API-NICE] 5개년 신용/현금흐름 지표 정상 수신 (${selectedCompany.credit})`,
-        `> [CROSS-CHECK] 최근 3년 누적 사고 건수/사망 0건 판명. 패스.`,
-        `> [CERT] 인증 체계 유효성 AI 파악: ${selectedCompany.kosha} 확인됨.`,
-        `> [GRAPH] 3.7만건 노드 스캔 완료. 특정 공종 기인물 패턴 탐지(${selectedCompany.graphRisk}).`,
-        `> [MATH] 보험 요율 계리(Actuarial) 신경망 통과. 할증율 시뮬레이션 완료.`,
-        `> [DB] 시스템 적재 대기. 최종 스코어 결합 중...`,
-        `> [SYS] Allocated 8GB VRAM for heterogeneous graph attention networks.`,
-        `> [NET] DeepWalk embeddings generating... Step ${Math.floor(Math.random()*5000+1000)}...`,
-        `> [NLP] Parsing unstructured safety logs... confidence: ${(Math.random()*10+90).toFixed(2)}%`,
-        `> [CACHE] HDFS chunk memory hit. Skip cold read...`,
-        `> [MODEL] Forward pass iteration ${(Math.floor(currentProg*25))}... Loss: ${(Math.random()*0.1).toFixed(4)}`,
-        `> [INFERENCE] Edge prediction latency: ${(Math.random()*15 + 5).toFixed(2)}ms. Stable.`
+        `> [FATAL-SCAN] 잠재적 붕괴 노드 탐지 중... 위험 가중치 급증`,
+        `> [CROSS-CHECK] 회사명 ${selectedCompany.name} - 안전보건 리스크 해시 대조 중...`,
+        `> [GRAPH-EDGE] 3.7만건 노드 스캔 가속화. 추락/협착 패턴 엣지(Edge) 연결.`,
+        `> [MATH] 보험 요율 계리(Actuarial) 신경망 통과. 패널티 알고리즘 적용 중.`,
+        `> [SYS] Allocated 16GB VRAM for heterogeneous graph attention networks.`,
+        `> [NET] DeepWalk embeddings generating... Step ${Math.floor(Math.random()*9000+1000)}...`,
+        `> [NLP] Parsing unstructured safety logs... loss: ${(Math.random()*0.1).toFixed(4)}`,
+        `> [ALERT] 예상 PML 한계값 돌파 구간 검출. Sub-limit 조항 추가 필요!`,
+        `> [DB] 시스템 메모리 적재 대기. 최종 스코어 트리거 발동...`,
+        `> [INFERENCE] Edge prediction latency: ${(Math.random()*5 + 1).toFixed(2)}ms. Hyper-fast.`
       ];
       
-      // Generate multiple logs rapidly to simulate intense AI processing
-      const newLogsCount = Math.floor(Math.random() * 3) + 1;
+      // Generation logic for rapidly scrolling terminal
+      const newLogsCount = Math.floor(Math.random() * 6) + 3; // very fast multi-line jump
       const newLogs = Array.from({length: newLogsCount}, () => logs[Math.floor(Math.random() * logs.length)]);
       
       setTerminalLogs(prev => {
         const nextLogs = [...prev, ...newLogs];
-        return nextLogs.slice(-40); 
+        return nextLogs.slice(-60); 
       });
-    }, 30);
+    }, 36);
+  };
+
+  // Simulate graph connection animation inside modal
+  const generateGraphNodes = () => {
+    const nodes = Array.from({length: 45}, (_, i) => ({
+      id: `node_${i}`,
+      color: i % 4 === 0 ? '#ef4444' : i % 3 === 0 ? '#f59e0b' : '#3b82f6',
+      x: Math.random() * 100,
+      y: Math.random() * 100
+    }));
+    setGraphNodes(nodes);
   };
 
   const radarData = {
@@ -248,10 +259,10 @@ export default function UnderwriterScorecard() {
                   ))}
                 </div>
 
-                <div style={{ background: '#0f172a', borderRadius: 8, padding: 16, height: 320, overflowY: 'hidden', border: '1px solid #1e293b', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: 11, color: '#64748b', marginBottom: 8, borderBottom: '1px solid #334155', paddingBottom: 8, fontWeight: 700, flexShrink: 0 }}>[ SYSTEM KERNEL MESSAGE IO ]</div>
-                  <div className="terminal-scroll" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 6, fontSize: 13, fontFamily: 'monospace', color: '#10b981', flex: 1, overflow: 'hidden' }}>
-                    {terminalLogs.slice(-25).map((log, i) => <div key={i}>{log}</div>)}<div className="animate-pulse" style={{ marginTop: 4 }}>_</div>
+                <div style={{ background: '#450a0a', borderRadius: 8, padding: 16, height: 640, overflowY: 'hidden', border: '2px solid #ef4444', display: 'flex', flexDirection: 'column', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)' }}>
+                  <div style={{ fontSize: 11, color: '#fca5a5', marginBottom: 8, borderBottom: '1px solid #7f1d1d', paddingBottom: 8, fontWeight: 700, flexShrink: 0 }}>[ SYSTEM KERNEL MESSAGE: OVERRIDE INITIATED ]</div>
+                  <div className="terminal-scroll" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 6, fontSize: 13, fontFamily: 'monospace', color: '#fecaca', flex: 1, overflow: 'hidden' }}>
+                    {terminalLogs.slice(-45).map((log, i) => <div key={i}>{log}</div>)}<div className="animate-pulse" style={{ marginTop: 4 }}>_</div>
                   </div>
                 </div>
               </div>
@@ -285,7 +296,14 @@ export default function UnderwriterScorecard() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32, gap: 16 }}>
+                  <button 
+                    onClick={() => { setShowGraphModal(true); generateGraphNodes(); }}
+                    style={{ background: '#0f172a', color: '#ffffff', padding: '16px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', border: '1px solid #334155', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                  >
+                    <Network size={20} color="#3b82f6" />
+                    지식그래프의 연결관계 설명 보기
+                  </button>
                   <button 
                     onClick={() => router.push(`/coverage-heatmap?companyId=${selectedCompany.id}`)}
                     style={{ background: '#b91c1c', color: '#ffffff', padding: '16px 48px', borderRadius: 8, fontSize: 18, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', border: 'none', boxShadow: '0 6px 16px rgba(185, 28, 28, 0.3)', animation: 'pulse 2s infinite' }}
@@ -301,6 +319,63 @@ export default function UnderwriterScorecard() {
                     }
                   `}</style>
                 </div>
+
+                {/* Graph Modal overlay */}
+                {showGraphModal && (
+                  <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.95)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease' }}>
+                    <div style={{ background: '#ffffff', width: '90%', maxWidth: 1200, height: '85vh', borderRadius: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 32px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <Network size={24} color="#3b82f6" /> {selectedCompany.name} 지식그래프 교차 연결 관계 분석망
+                        </h2>
+                        <button onClick={() => setShowGraphModal(false)} style={{ background: '#e2e8f0', border: 'none', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }}>
+                          <X size={20} color="#475569" />
+                        </button>
+                      </div>
+                      <div style={{ flex: 1, display: 'flex' }}>
+                        <div style={{ width: 320, background: '#f8fafc', borderRight: '1px solid #e2e8f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                          <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>상세 원인 파생 관계 설명</h3>
+                          <div style={{ background: '#eff6ff', padding: 16, borderRadius: 8, border: '1px solid #bfdbfe' }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', marginBottom: 4 }}>지배적 사고 원인 클러스터</div>
+                            <div style={{ fontSize: 14, color: '#1e3a8a', lineHeight: 1.5 }}>
+                              해당 시공업체는 주로 기초 공정에서 <b>시스템비계 결함 및 추락</b> 사고의 빈도가 평균 대비 12% 이상 발생하고 있습니다. 이는 37.1K 노드 그래프의 중심부(결정적 교차 엣지)에 해당됩니다.
+                            </div>
+                          </div>
+                          <div style={{ background: '#fef2f2', padding: 16, borderRadius: 8, border: '1px solid #fecaca' }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: '#dc2626', marginBottom: 4 }}>교차 원인 위험도</div>
+                            <div style={{ fontSize: 14, color: '#7f1d1d', lineHeight: 1.5 }}>
+                              기인물(장비)와 장소(협소 공간)의 병합 시 리스크 한계치 선형 팽창 현상이 확인됩니다.
+                            </div>
+                          </div>
+                          <button onClick={() => setShowGraphModal(false)} style={{ marginTop: 'auto', background: '#0f172a', color: '#fff', padding: '12px', borderRadius: 8, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+                            기존 상세 화면으로 뒤로 가기
+                          </button>
+                        </div>
+                        <div style={{ flex: 1, position: 'relative', background: '#020617', overflow: 'hidden' }}>
+                          <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 10 }}>
+                            <div style={{ display: 'flex', gap: 12, background: 'rgba(15,23,42,0.8)', padding: '8px 16px', borderRadius: 8, border: '1px solid #334155', backdropFilter: 'blur(4px)' }}>
+                              <span style={{ fontSize: 12, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 10, height: 10, background: '#ef4444', borderRadius: '50%' }}/> 발생 사고 노드</span>
+                              <span style={{ fontSize: 12, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 10, height: 10, background: '#f59e0b', borderRadius: '50%' }}/> 주요 기인물</span>
+                              <span style={{ fontSize: 12, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 10, height: 10, background: '#3b82f6', borderRadius: '50%' }}/> 시공 현장 단위</span>
+                            </div>
+                          </div>
+                          
+                          <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
+                            {graphNodes.map((n1, i) => 
+                              graphNodes.slice(i+1, i+3).map(n2 => (
+                                <line key={`${n1.id}-${n2.id}`} x1={`${n1.x}%`} y1={`${n1.y}%`} x2={`${n2.x}%`} y2={`${n2.y}%`} stroke="rgba(148, 163, 184, 0.15)" strokeWidth={1} />
+                              ))
+                            )}
+                            {graphNodes.map(n => (
+                              <circle key={n.id} cx={`${n.x}%`} cy={`${n.y}%`} r={n.color === '#ef4444' ? 8 : 5} fill={n.color} style={{ filter: `drop-shadow(0 0 8px ${n.color})`, animation: 'pulse 3s infinite' }} />
+                            ))}
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
 
                 {/* 4 Deep Dive Cards */}
                 <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}><BookOpen size={20} color="#002A7A"/> 파이프라인 구간 상세 분석 브리핑</h3>
