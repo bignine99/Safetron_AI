@@ -26,13 +26,18 @@ interface GraphEdge {
 const NODE_COLORS: Record<string, string> = {
   Accident: '#ef4444', Company: '#2563eb', Agent: '#f59e0b',
   Location: '#10b981', Component: '#8b5cf6', AccidentType: '#ec4899',
+  Tool: '#64748b', Equipment: '#0ea5e9', Task: '#14b8a6',
+  Cause: '#f43f5e', BodyPart: '#eab308', Result: '#d946ef'
 };
 const NODE_KR: Record<string, string> = {
   Accident: '사고', Company: '회사', Agent: '관계자',
   Location: '장소', Component: '기인물', AccidentType: '사고유형',
+  Tool: '도구', Equipment: '장비', Task: '작업',
+  Cause: '사고원인', BodyPart: '신체부위', Result: '의학적유형'
 };
 const NODE_RADIUS: Record<string, number> = {
-  AccidentType: 14, Company: 10, Agent: 10, Location: 10, Component: 10, Accident: 5,
+  AccidentType: 14, Company: 10, Agent: 8, Location: 10, Component: 10,
+  Tool: 8, Equipment: 10, Task: 8, Cause: 10, BodyPart: 8, Result: 8, Accident: 5,
 };
 
 const QUICK_ITEMS = [
