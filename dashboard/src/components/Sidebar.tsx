@@ -98,18 +98,18 @@ export default function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '4px 6px' : '4px 8px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <nav className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '2px 4px' : '2px 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {navItems.map((item, idx) => {
             if (item.type === 'header') {
-              if (collapsed) return <div key={idx} style={{ height: 24 }} />;
+              if (collapsed) return <div key={idx} style={{ height: 16 }} />;
               return (
                 <div key={idx} style={{ 
-                  padding: '20px 12px 6px 12px', 
-                  fontSize: 11, 
-                  fontWeight: 700, 
-                  color: 'var(--text-muted)', 
-                  letterSpacing: '0.04em' 
+                  padding: '12px 12px 4px 12px', 
+                  fontSize: 12, 
+                  fontWeight: 900, 
+                  color: '#0f172a', 
+                  letterSpacing: '0.02em' 
                 }}>
                   {item.title}
                 </div>
@@ -122,7 +122,7 @@ export default function Sidebar() {
               <Link key={item.href} href={item.href}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  padding: collapsed ? '8px 0' : '7px 10px',
+                  padding: collapsed ? '6px 0' : '6px 10px',
                   justifyContent: collapsed ? 'center' : 'flex-start',
                   borderRadius: 8, textDecoration: 'none', transition: 'all 0.12s ease',
                   background: isActive ? 'var(--accent-muted)' : 'transparent',
@@ -134,10 +134,9 @@ export default function Sidebar() {
               >
                 <Icon style={{ width: 16, height: 16, flexShrink: 0 }} />
                 {!collapsed && (
-                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: isActive ? 600 : 500, lineHeight: 1.2, color: isActive ? 'var(--text-primary)' : 'inherit' }}>{item.title}</span>
-                    {/* Subtitles can be kept clean or slightly muted if desired */}
-                    <span style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.04em', marginTop: 1 }}>{item.subtitle}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, justifyContent: 'center' }}>
+                    <span style={{ fontSize: 13, fontWeight: isActive ? 700 : 500, lineHeight: 1.1, color: isActive ? 'var(--text-primary)' : 'inherit' }}>{item.title}</span>
+                    <span style={{ fontSize: 9.5, color: 'var(--text-muted)', letterSpacing: '0.02em', marginTop: 1 }}>{item.subtitle}</span>
                   </div>
                 )}
               </Link>
