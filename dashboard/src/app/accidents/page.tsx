@@ -491,22 +491,7 @@ export default function AccidentExplorerPage() {
                   onNodeClick={(n: any) => setSelectedNode(n as GraphNode)}
                   onNodeRightClick={(n: any) => loadSubGraph(n.id)}
                 />
-                
-                {/* ── Legend (9 Items) ── */}
-                <div style={{
-                  position: 'absolute', bottom: 60, left: '50%', transform: 'translateX(-50%)',
-                  display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16, background: 'rgba(255,255,255,0.95)',
-                  padding: '10px 24px', borderRadius: 30, boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                  backdropFilter: 'blur(10px)', zIndex: 100, border: '1px solid rgba(0,0,0,0.05)',
-                  width: 'max-content', maxWidth: '90%'
-                }}>
-                  {['AccidentType', 'Accident', 'Company', 'Agent', 'Location', 'Component', 'Equipment', 'Tool', 'Cause'].map(key => (
-                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <div style={dot(NODE_COLORS[key], 10)} />
-                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>{NODE_KR[key]}</span>
-                    </div>
-                  ))}
-                </div>
+                {/* Legend was removed here because there is a 12-item legend globally at the bottom left */}
             </div>
           )}
 
