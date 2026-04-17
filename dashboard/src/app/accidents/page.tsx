@@ -138,7 +138,7 @@ export default function AccidentExplorerPage() {
     if (!searchTerm.trim()) return;
     setSearching(true);
     try {
-      const res = await fetch(`${basePath}/api/graph/search?q=${encodeURIComponent(searchTerm)}`);
+      const res = await fetch(`${basePath}/api/graph/search?q=${encodeURIComponent(searchTerm)}`, { cache: 'no-store' });
       const data = await res.json();
       setSearchResults(data.nodes || []);
     } catch (err) { console.error(err); }
@@ -153,7 +153,8 @@ export default function AccidentExplorerPage() {
     const useMax = max ?? maxAccidents;
     try {
       const res = await fetch(
-        `${basePath}/api/graph/subgraph?id=${encodeURIComponent(nodeId)}&depth=${useDepth}&max=${useMax}`
+        `${basePath}/api/graph/subgraph?id=${encodeURIComponent(nodeId)}&depth=${useDepth}&max=${useMax}`,
+        { cache: 'no-store' }
       );
       
       const text = await res.text();
