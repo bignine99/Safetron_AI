@@ -760,57 +760,65 @@ export default function AccidentExplorerPage() {
             </div>
           )}
 
-          {/* ── Legend (Moved from Header) ── */}
+          {/* ── Bottom Info Bar: Legend & Stats ── */}
           <div style={{
-            position: 'absolute', bottom: 14, left: 14, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap',
-            zIndex: 50, maxWidth: '60%'
+            position: 'absolute', bottom: 14, left: 14, right: 14, 
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            zIndex: 50, pointerEvents: 'none' // allow click through where no elements
           }}>
-            {Object.entries(NODE_COLORS).map(([label, color]) => (
-              <div key={label} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-                padding: '4px 10px', borderRadius: 16,
-                border: `1px solid ${color}30`, background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(4px)',
-                fontSize: 11, fontWeight: 600, color: color,
-                boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
-              }}>
-                <div style={dot(color, 6)} />
-                <span>{NODE_KR[label] || label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Stats badge */}
-          {graphData && (
+            {/* Left: Legend */}
             <div style={{
-              position: 'absolute', bottom: 14, right: 14, display: 'flex', alignItems: 'center', gap: 8,
-              background: '#fff', border: '1px solid var(--border-default)', borderRadius: 8,
-              padding: '5px 12px', fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)',
-              fontFamily: "'Inter', monospace", zIndex: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-            }}>
-              <span>{graphData.nodes.length} nodes</span>
-              <span style={{ color: 'var(--text-dim)' }}>·</span>
-              <span>{graphData.edges.length} edges</span>
-              {graphStats?.labelCounts && (
-                <>
-                  <span style={{ color: 'var(--text-dim)' }}>|</span>
-                  {Object.entries(graphStats.labelCounts as Record<string, number>)
-                    .filter(([label]) => label !== 'Accident')
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 4)
-                    .map(([label, cnt]) => (
-                      <span key={label} style={{ color: NODE_COLORS[label] || '#9ca3af' }}>
-                        {NODE_KR[label] || label}: {cnt as number}
-                      </span>
-                    ))
-                  }
-                  {Object.keys(graphStats.labelCounts).length > 5 && (
-                    <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>등 {Object.keys(graphStats.labelCounts).length - 1}종</span>
-                  )}
-                </>
-              )}
+              display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'nowrap', pointerEvents: 'auto',
+              overflowX: 'auto' // Prevent wrapping, allow horizontal scroll if screen is too narrow
+            }} className="custom-scrollbar-hide">
+              {Object.entries(NODE_COLORS).map(([label, color]) => (
+                <div key={label} style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '4px 10px', borderRadius: 16,
+                  border: `1px solid ${color}30`, background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(4px)', flexShrink: 0,
+                  fontSize: 11, fontWeight: 600, color: color,
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+                }}>
+                  <div style={dot(color, 6)} />
+                  <span style={{ whiteSpace: 'nowrap' }}>{NODE_KR[label] || label}</span>
+                </div>
+              ))}
             </div>
-          )}
+
+            {/* Right: Stats badge */}
+            {graphData && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8, pointerEvents: 'auto',
+                background: 'rgba(255, 255, 255, 0.95)', border: '1px solid var(--border-default)', borderRadius: 8,
+                padding: '5px 12px', fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)',
+                backdropFilter: 'blur(4px)', flexShrink: 0,
+                fontFamily: "'Inter', monospace", boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              }}>
+                <span style={{ whiteSpace: 'nowrap' }}>{graphData.nodes.length} nodes</span>
+                <span style={{ color: 'var(--text-dim)' }}>·</span>
+                <span style={{ whiteSpace: 'nowrap' }}>{graphData.edges.length} edges</span>
+                {graphStats?.labelCounts && (
+                  <>
+                    <span style={{ color: 'var(--text-dim)' }}>|</span>
+                    {Object.entries(graphStats.labelCounts as Record<string, number>)
+                      .filter(([label]) => label !== 'Accident')
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 4)
+                      .map(([label, cnt]) => (
+                        <span key={label} style={{ color: NODE_COLORS[label] || '#9ca3af', whiteSpace: 'nowrap' }}>
+                          {NODE_KR[label] || label}: {cnt as number}
+                        </span>
+                      ))
+                    }
+                    {Object.keys(graphStats.labelCounts).length > 5 && (
+                      <span style={{ fontSize: 10, color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>등 {Object.keys(graphStats.labelCounts).length - 1}종</span>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
