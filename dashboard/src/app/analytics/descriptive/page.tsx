@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend, AreaChart, Area, ScatterChart, Scatter,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  ComposedChart, Line, RadialBarChart, RadialBar, ZAxis
+  ComposedChart, Line, RadialBarChart, RadialBar, ZAxis, LineChart
 } from 'recharts';
 import { Activity } from 'lucide-react';
 
