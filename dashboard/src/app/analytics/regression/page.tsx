@@ -95,24 +95,12 @@ export default function RegressionPage() {
         {/* GLOBAL R2 SCORES */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, marginBottom: 24 }}>
           
-          <ChartCard title="단일 선형 회귀: R² 성능 비교" subtitle="Simple Linear Regression (R²)" colSpan={2}>
-            <ResponsiveContainer width="100%" height={250}>
-              <ComposedChart data={simpleR2Data} layout="vertical" margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
-                <XAxis type="number" domain={[0, 1]} axisLine={false} tickLine={false} tick={{fontSize: 10, fill: PALETTE.slate}} />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 9.5, fill: PALETTE.deep, fontWeight: 600}} width={170} />
-                <RechartsTooltip cursor={{fill: 'rgba(241, 245, 249, 0.5)'}} contentStyle={{borderRadius: '6px', border: '1px solid #cbd5e1'}} />
-                <Bar dataKey="r2" fill={PALETTE.primary} radius={[0, 6, 6, 0]} barSize={12} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
-          <ChartCard title="다중 선형 회귀: R² 성능 비교" subtitle="Multiple Linear Regression (R²)" colSpan={2}>
+          <ChartCard title="전체 다중 선형 회귀(Multiple Regression) R² 성능 비교" subtitle="Global Multiple Linear Regressions Score" colSpan={4}>
             <ResponsiveContainer width="100%" height={250}>
               <ComposedChart data={multipleR2Data} layout="vertical" margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
                 <XAxis type="number" domain={[0, 1]} axisLine={false} tickLine={false} tick={{fontSize: 10, fill: PALETTE.slate}} />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 9.5, fill: PALETTE.deep, fontWeight: 600}} width={170} />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: PALETTE.deep, fontWeight: 600}} width={170} />
                 <RechartsTooltip cursor={{fill: 'rgba(241, 245, 249, 0.5)'}} contentStyle={{borderRadius: '6px', border: '1px solid #cbd5e1'}} />
                 <Bar dataKey="r2" fill={PALETTE.secondary} radius={[0, 6, 6, 0]} barSize={12} />
               </ComposedChart>
