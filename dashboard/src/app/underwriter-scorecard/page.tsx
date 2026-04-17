@@ -195,41 +195,32 @@ function UnderwriterScorecardContent() {
             <BadgeDollarSign size={24} color="#93c5fd" /> 실무 보험 인수/요율 심사 (Automated Underwriting)
           </h1>
         </div>
-        <button onClick={() => setShowGuide(true)} style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', padding: '8px 16px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-          <Info size={16} /> 대시보드 해석 가이드
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ position: 'relative', width: 260 }}>
+            <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 16, color: '#e2e8f0' }} />
+            <input 
+              type="text" 
+              placeholder="시공업체 검색..." 
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = e.currentTarget.value;
+                  if(val) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('company', val);
+                    window.location.href = url.toString();
+                  }
+                }
+              }}
+              style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: '#fff', fontWeight: 500, boxSizing: 'border-box' }}
+            />
+          </div>
+          <button onClick={() => setShowGuide(true)} style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', padding: '8px 16px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+            <Info size={16} /> 대시보드 해석 가이드
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        
-        {/* ══════════ Left Sidebar ══════════ */}
-        <div style={{ width: 340, borderRight: '1px solid #e2e8f0', background: '#ffffff', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
-          <div style={{ padding: 20, borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-            <div style={{ position: 'relative' }}>
-              <Search style={{ position: 'absolute', left: 12, top: 10, width: 16, color: '#94a3b8' }} />
-              <input type="text" placeholder="시공업체 검색..." style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', fontWeight: 500, boxSizing: 'border-box' }}/>
-            </div>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            {MOCK_COMPANIES.map(company => (
-              <div 
-                key={company.id} onClick={() => { setSelectedCompany(company); setStage('IDLE'); }}
-                style={{
-                  padding: '20px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', background: selectedCompany.id === company.id ? '#f0f9ff' : '#ffffff',
-                  borderLeft: selectedCompany.id === company.id ? '4px solid #002A7A' : '4px solid transparent', transition: 'background 0.2s'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontWeight: 800, fontSize: 15, color: selectedCompany.id === company.id ? '#002A7A' : '#334155' }}>{company.name}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: company.score > 80 ? '#dcfce7' : company.score > 60 ? '#fef08a' : '#fee2e2', color: company.score > 80 ? '#166534' : company.score > 60 ? '#854d0e' : '#991b1b' }}>{company.rank}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#64748b', fontWeight: 500 }}>
-                  <span>{company.type}</span><span>체인 위험가중 {company.incident.toFixed(2)}x</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* ══════════ Right Content ══════════ */}
         <div style={{ flex: 1, overflowY: 'auto', background: '#f8fafc', paddingBottom: 60 }}>
