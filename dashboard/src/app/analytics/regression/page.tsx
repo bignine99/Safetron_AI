@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine,
-  BarChart, Bar, ComposedChart, Line, AreaChart, Area
+  BarChart, Bar, ComposedChart, Line, AreaChart, Area, Cell
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 
