@@ -54,7 +54,7 @@ export default function RiskMapPage() {
   const [activeNode, setActiveNode] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/data/statistical_report.json')
+    fetch('/safetron/data/statistical_report.json')
       .then(res => res.json())
       .then(d => setData(d))
       .catch(err => console.error(err));
