@@ -369,7 +369,7 @@ export default function AccidentExplorerPage() {
 
           {/* Search results */}
           {searchResults.length > 0 && (
-            <div style={{ borderTop: '1px solid var(--border-default)', maxHeight: 220, overflowY: 'auto' }} className="custom-scrollbar">
+            <div style={{ borderTop: '1px solid var(--border-default)', maxHeight: 220, overflowY: 'auto', flexShrink: 0 }} className="custom-scrollbar">
               <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', padding: '10px 16px 6px', fontFamily: "'Inter', monospace" }}>
                 Results — {searchResults.length}
               </div>
