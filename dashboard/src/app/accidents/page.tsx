@@ -220,7 +220,7 @@ export default function AccidentExplorerPage() {
 
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', height: '100vh',
+      display: 'flex', flexDirection: 'column', height: '100%', flex: 1,
       fontFamily: "'Pretendard', 'Inter', sans-serif",
       color: 'var(--text-secondary)', background: 'var(--bg-root)',
     }}>
