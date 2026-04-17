@@ -80,10 +80,10 @@ export default function RiskMapPage() {
       result = result.filter(c => c.시공회사명.includes(searchTerm));
     }
     if (filterInsurance !== 'all') {
-      result = result.filter(c => c.보험료_등급.includes(filterInsurance));
+      result = result.filter(c => c.보험료_등급 && c.보험료_등급.includes(filterInsurance));
     }
     if (filterTrend !== 'all') {
-      result = result.filter(c => c.최근3년_사고추세 === filterTrend);
+      result = result.filter(c => c.최근3년_사고추세 && c.최근3년_사고추세.includes(filterTrend));
     }
     result.sort((a, b) => {
       switch (sortBy) {
@@ -308,11 +308,11 @@ export default function RiskMapPage() {
                     style={{ width: '100%', background: '#fff', border: '1px solid var(--border-default)', borderRadius: 8, padding: 8, color: 'var(--text-primary)', fontSize: 12, outline: 'none' }}
                   >
                     <option value="all">전체</option>
-                    <option value="위험">E등급 (위험)</option>
+                    <option value="위험">D등급 (위험)</option>
                     <option value="주의">C등급 (주의)</option>
                     <option value="보통">B등급 (보통)</option>
-                    <option value="양호">A등급 (양호)</option>
-                    <option value="우수">S등급 (우수)</option>
+                    <option value="우량">A등급 (우량)</option>
+                    <option value="최우량">S등급 (최우량)</option>
                   </select>
                 </div>
                 <div>
