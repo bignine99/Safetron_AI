@@ -66,21 +66,22 @@ export default function RiskMapPage() {
 
     // 1. Radar Chart Data: 9 Nodes mean normalized
     const features = data.descriptive.numeric || [];
-    const minM = Math.min(...features.map((f: any) => f.mean));
-    const maxM = Math.max(...features.map((f: any) => f.mean));
     const radarData = features.map((f: any) => ({
       subject: f.feature,
-      A: ((f.mean - minM) / (maxM - minM || 1)) * 100, // Normalized to 0-100 for visual relativity
+      A: ((f.mean - f.min) / (f.max - f.min || 1)) * 100, // Normalized to 0-100 logically for its own range
       fullMark: 100,
     }));
 
     // 2. Treemap Chart Data: Categorical Frequencies
     const categoryFeatures = data.descriptive.categorical || [];
     const accidentObj = categoryFeatures.find((c: any) => c.feature === '사고객체') || categoryFeatures[0];
-    const treemapData = accidentObj ? accidentObj.counts.map((c: any) => ({
+    const treemapRaw = accidentObj ? accidentObj.counts.map((c: any) => ({
       name: c.value === '-' ? '기타/미분류' : c.value,
       size: c.count
     })).filter((d: any) => d.size > 10).slice(0, 15) : [];
+    
+    // Treemap in Recharts often requires a root 'children' structure
+    const treemapData = treemapRaw.length > 0 ? [{ name: '사고 객체', children: treemapRaw }] : [];
 
     // 3. Gauge Chart Data: Average Risk Index compared to logical max
     const riskFeat = features.find((f: any) => f.feature === '사고위험도지수(Risk_Index)');
@@ -151,7 +152,7 @@ export default function RiskMapPage() {
   }
 
   return (
-    <div style={{ background: COLORS.bg, minHeight: '100vh', padding: '0', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: COLORS.bg, height: '100vh', padding: '0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* 80px Unified Engineering Header */}
       <div style={{ 
         height: '80px', 
@@ -185,7 +186,7 @@ export default function RiskMapPage() {
           {/* Gauge Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><Activity size={16} /> 종합 위험 지수 게이지</div>
-            <div style={{ flex: 1, position: 'relative' }}>
+            <div style={{ flex: 1, position: 'relative', minHeight: 0, width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -219,7 +220,8 @@ export default function RiskMapPage() {
           {/* Radar Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><Cpu size={16} /> 9-Node 다차원 민감도 방사형 차트</div>
-            <ResponsiveContainer width="100%" height="100%">
+            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
                 <PolarGrid stroke={`${COLORS.muted}40`} />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: COLORS.slate, fontSize: 10, fontWeight: 600 }} />
@@ -231,6 +233,7 @@ export default function RiskMapPage() {
                 />
               </RadarChart>
             </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
@@ -239,7 +242,8 @@ export default function RiskMapPage() {
           {/* Treemap */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><ShieldAlert size={16} /> 사고 객체별 발생 비중 트리맵</div>
-            <ResponsiveContainer width="100%" height="100%">
+            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
               <Treemap
                 data={treemapData}
                 dataKey="size"
@@ -255,12 +259,14 @@ export default function RiskMapPage() {
                 />
               </Treemap>
             </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Bubble Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><Activity size={16} /> 피어슨 상관계수 버블 볼륨</div>
-            <ResponsiveContainer width="100%" height="100%">
+            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
               <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={`${COLORS.muted}20`} horizontal={false} />
                 <XAxis type="number" dataKey="x" name="Pearson R" tick={{ fontSize: 10 }} stroke={`${COLORS.muted}80`} domain={[-1, 1]} />
@@ -277,6 +283,7 @@ export default function RiskMapPage() {
                 </Scatter>
               </ScatterChart>
             </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
@@ -285,7 +292,8 @@ export default function RiskMapPage() {
           {/* Stacked Column Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><Cpu size={16} /> 공정 구간별 리스크 중첩 누적 세로 막대</div>
-            <ResponsiveContainer width="100%" height="100%">
+            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stackedData} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={`${COLORS.muted}20`} />
                 <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke={`${COLORS.muted}`} angle={-30} textAnchor="end" />
@@ -302,12 +310,14 @@ export default function RiskMapPage() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Box Plot (Custom Composed Range Bar) */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><ShieldAlert size={16} /> 노드별 분산 편차 (Box-Plot 대체 모델)</div>
-            <ResponsiveContainer width="100%" height="100%">
+            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={boxPlotData} layout="vertical" margin={{ top: 20, right: 30, left: 80, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={`${COLORS.muted}20`} />
                 <XAxis type="number" tick={{ fontSize: 10 }} stroke={`${COLORS.muted}`} />
@@ -318,9 +328,10 @@ export default function RiskMapPage() {
                 />
                 {/* Visualizing Range and Mean */}
                 <Bar dataKey="rangeSpan" fill={`${COLORS.muted}40`} barSize={12} isAnimationActive={true} animationDuration={1500} name="Min-Max Range" />
-                <Scatter dataKey="mean" fill={COLORS.danger} name="Mean" isAnimationActive={true} animationDuration={1500} />
+                <Line dataKey="mean" stroke={COLORS.danger} strokeWidth={0} dot={{ r: 4, fill: COLORS.danger, strokeWidth: 0 }} activeDot={{ r: 6 }} isAnimationActive={true} name="Mean" />
               </ComposedChart>
             </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </div>
