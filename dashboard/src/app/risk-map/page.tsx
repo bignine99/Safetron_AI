@@ -381,7 +381,7 @@ export default function RiskMapPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip contentStyle={{ background: '#fff', border: `1px solid ${COLORS.muted}20`, borderRadius: '6px', fontSize: '11px', fontWeight: 600 }} />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600 }} payload={weatherData.map((item: any, index: number) => ({ id: item.name, type: 'circle', value: item.name, color: [COLORS.primary, COLORS.secondary, COLORS.tertiary, COLORS.accent, COLORS.warn][index % 5] }))} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600 }} />
                   <Pie
                     data={weatherData}
                     cx="50%"
