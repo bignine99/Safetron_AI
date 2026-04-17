@@ -192,8 +192,8 @@ export default function AccidentExplorerPage() {
   useEffect(() => {
     if (graphData && fgRef.current) {
       setTimeout(() => {
-        // Move camera to bottom-right to make the graph appear in the top-left
-        fgRef.current.cameraPosition({ x: 100, y: -100, z: 350 }, { x: 0, y: 0, z: 0 }, 1000);
+        // Move the target (lookAt) towards bottom-right, pushing the graph visualization to the top-left
+        fgRef.current.cameraPosition({ x: 0, y: 0, z: 450 }, { x: 120, y: -100, z: 0 }, 1500);
       }, 300);
     }
   }, [graphData]);
@@ -494,10 +494,11 @@ export default function AccidentExplorerPage() {
                 
                 {/* ── Legend (9 Items) ── */}
                 <div style={{
-                  position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-                  display: 'flex', gap: 16, background: 'rgba(255,255,255,0.95)',
+                  position: 'absolute', bottom: 60, left: '50%', transform: 'translateX(-50%)',
+                  display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16, background: 'rgba(255,255,255,0.95)',
                   padding: '10px 24px', borderRadius: 30, boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                  backdropFilter: 'blur(10px)', zIndex: 10, border: '1px solid rgba(0,0,0,0.05)'
+                  backdropFilter: 'blur(10px)', zIndex: 100, border: '1px solid rgba(0,0,0,0.05)',
+                  width: 'max-content', maxWidth: '90%'
                 }}>
                   {['AccidentType', 'Accident', 'Company', 'Agent', 'Location', 'Component', 'Equipment', 'Tool', 'Cause'].map(key => (
                     <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
