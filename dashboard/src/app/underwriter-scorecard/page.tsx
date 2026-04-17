@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { 
   Building2, Search, ShieldAlert, FileCheck, Play, Loader2, 
   FileText, CheckCircle2, Cpu, Info, X, BadgeDollarSign, HeartHandshake, Network, BookOpen, BarChart3, TrendingUp, Layers
@@ -69,9 +70,21 @@ const scatterOptions = {
   plugins: { legend: { display: true, position: 'top' as const } }
 };
 
-export default function UnderwriterScorecard() {
+function UnderwriterScorecardContent() {
   const router = useRouter();
-  const [selectedCompany, setSelectedCompany] = useState(MOCK_COMPANIES[0]);
+  const searchParams = useSearchParams();
+  
+  const initialCompany = React.useMemo(() => {
+    const passedCompany = searchParams.get('company');
+    if (passedCompany) {
+      const hash = passedCompany.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const index = hash % MOCK_COMPANIES.length;
+      return { ...MOCK_COMPANIES[index], name: passedCompany };
+    }
+    return MOCK_COMPANIES[0];
+  }, [searchParams]);
+
+  const [selectedCompany, setSelectedCompany] = useState(initialCompany);
   const [stage, setStage] = useState<'IDLE' | 'PROCESSING' | 'COMPLETE'>('IDLE');
   const [progress, setProgress] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
@@ -496,5 +509,13 @@ export default function UnderwriterScorecard() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function UnderwriterScorecard() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Loading Insurance Scorecard...</div>}>
+      <UnderwriterScorecardContent />
+    </Suspense>
   );
 }

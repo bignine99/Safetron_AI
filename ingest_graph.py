@@ -84,41 +84,80 @@ def main():
             if co_name:
                 add_edge(acc_id, f"CO_{co_name}", "MANAGED_BY")
             
-            # Agent nodes
-            agents = ont.get("직책명", [])
-            if isinstance(agents, list):
-                for agent in agents:
-                    if not agent: continue
-                    agent_id = f"AGENT_{agent}"
-                    add_node(agent_id, agent, "Agent")
-                    add_edge(acc_id, agent_id, "INVOLVED_AGENT")
+            # 1. Agent nodes (직책명)
+            for agent in ont.get("직책명", []) if isinstance(ont.get("직책명", []), list) else []:
+                if not agent: continue
+                agent_id = f"AGENT_{agent}"
+                add_node(agent_id, agent, "Agent")
+                add_edge(acc_id, agent_id, "INVOLVED_AGENT")
                 
-            # Location nodes
-            spaces = ont.get("사고공간", [])
-            if isinstance(spaces, list):
-                for loc in spaces:
-                    if not loc: continue
-                    loc_id = f"LOC_{loc}"
-                    add_node(loc_id, loc, "Location")
-                    add_edge(acc_id, loc_id, "OCCURRED_AT")
+            # 2. Location nodes (사고공간)
+            for loc in ont.get("사고공간", []) if isinstance(ont.get("사고공간", []), list) else []:
+                if not loc: continue
+                loc_id = f"LOC_{loc}"
+                add_node(loc_id, loc, "Location")
+                add_edge(acc_id, loc_id, "OCCURRED_AT")
                 
-            # Object nodes (Component)
-            components = []
-            if isinstance(ont.get("사고기인물", []), list): components.extend(ont.get("사고기인물", []))
-            if isinstance(ont.get("도구", []), list): components.extend(ont.get("도구", []))
-            if isinstance(ont.get("장비", []), list): components.extend(ont.get("장비", []))
-            for obj in components:
+            # 3. Component nodes (사고기인물)
+            for obj in ont.get("사고기인물", []) if isinstance(ont.get("사고기인물", []), list) else []:
                 if not obj: continue
-                obj_id = f"OBJ_{obj}"
+                obj_id = f"COMP_{obj}"
                 add_node(obj_id, obj, "Component")
-                add_edge(acc_id, obj_id, "INVOLVES_OBJECT")
+                add_edge(acc_id, obj_id, "INVOLVES_COMPONENT")
                 
-            # Result nodes / AccidentType
+            # 4. Tool nodes (도구)
+            for tool in ont.get("도구", []) if isinstance(ont.get("도구", []), list) else []:
+                if not tool: continue
+                tool_id = f"TOOL_{tool}"
+                add_node(tool_id, tool, "Tool")
+                add_edge(acc_id, tool_id, "USED_TOOL")
+
+            # 5. Equipment nodes (장비)
+            for eq in ont.get("장비", []) if isinstance(ont.get("장비", []), list) else []:
+                if not eq: continue
+                eq_id = f"EQ_{eq}"
+                add_node(eq_id, eq, "Equipment")
+                add_edge(acc_id, eq_id, "USED_EQUIPMENT")
+
+            # 6. Task nodes (작업)
+            for task in ont.get("작업", []) if isinstance(ont.get("작업", []), list) else []:
+                if not task: continue
+                task_id = f"TASK_{task}"
+                add_node(task_id, task, "Task")
+                add_edge(acc_id, task_id, "DURING_TASK")
+
+            # 7. Cause nodes (사고원인)
+            for cause in ont.get("사고원인", []) if isinstance(ont.get("사고원인", []), list) else []:
+                if not cause: continue
+                cause_id = f"CAUSE_{cause}"
+                add_node(cause_id, cause, "Cause")
+                add_edge(acc_id, cause_id, "CAUSED_BY")
+
+            # 8. BodyPart nodes (신체부위)
+            for body in ont.get("신체부위", []) if isinstance(ont.get("신체부위", []), list) else []:
+                if not body: continue
+                body_id = f"BODY_{body}"
+                add_node(body_id, body, "BodyPart")
+                add_edge(acc_id, body_id, "INJURED_BODY_PART")
+                
+            # 9. Result nodes / AccidentType (의학적유형 or KOSHA)
+            # Use KOSHA type as primary AccidentType
             accident_type = meta.get("사고유형_KOSHA")
             if accident_type:
                 res_id = f"TYPE_{accident_type}"
                 add_node(res_id, accident_type, "AccidentType")
                 add_edge(acc_id, res_id, "RESULTED_IN")
+
+            # Parse 의학적유형 if available into Result nodes
+            results = ont.get("사고결과", {})
+            if isinstance(results, dict):
+                med_types = results.get("의학적유형", [])
+                if isinstance(med_types, list):
+                    for med in med_types:
+                        if not med: continue
+                        med_id = f"MED_{med}"
+                        add_node(med_id, med, "Result")
+                        add_edge(acc_id, med_id, "MEDICAL_RESULT")
 
     # Batch insert
     print(f"Inserting {len(nodes)} nodes and {len(edges)} edges into SQLite...")

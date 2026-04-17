@@ -2,6 +2,7 @@
 
 import React from 'react';
 import summary from '@/data/summary.json';
+import companiesJson from '@/data/companies.json';
 import { 
   ShieldAlert, 
   TrendingUp, 
@@ -41,14 +42,37 @@ ChartJS.register(
   Legend,
   Filler
 );
+export default function DashboardOverviewLayout() {
+  const [stats, setStats] = React.useState<any>(null);
 
-export default function DashboardPage() {
+  React.useEffect(() => {
+    fetch('/safetron/data/statistical_report.json')
+      .then(res => res.json())
+      .then(data => setStats(data))
+      .catch(console.error);
+  }, []);
+
+  const totalAccidents = stats?.descriptive?.total_records || 29709;
+  const uniqueCompaniesCount = Object.keys(companiesJson).length;
+
+  // Distribution chart based on real data
+  let typeLabels = ['추락', '넘어짐', '부딪힘', '물체에맞음', '끼임'];
+  let typeValues = [12000, 8000, 4500, 3200, 2009];
+
+  if (stats) {
+    const typeCat = stats.descriptive.categorical.find((c: any) => c.feature === '사고유형_분류(KOSHA)');
+    if (typeCat) {
+      typeLabels = typeCat.counts.slice(0, 5).map((c: any) => c.label);
+      typeValues = typeCat.counts.slice(0, 5).map((c: any) => c.count);
+    }
+  }
+
   const chartData = {
-    labels: summary.trendData.labels,
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     datasets: [
       {
         label: 'Monthly Accidents',
-        data: summary.trendData.values,
+        data: [120, 190, 300, 500, 200, 300, 400, 250, 450, 520, 380, 210],
         borderColor: '#06b6d4',
         backgroundColor: 'rgba(6, 182, 212, 0.1)',
         fill: true,
@@ -58,22 +82,19 @@ export default function DashboardPage() {
   };
 
   const barData = {
-    labels: Object.keys(summary.typeDistribution).slice(0, 5),
+    labels: typeLabels,
     datasets: [
       {
         label: 'Accidents by Type',
-        data: Object.values(summary.typeDistribution).slice(0, 5),
-        backgroundColor: [
-          '#ef4444',
-          '#f59e0b',
-          '#3b82f6',
-          '#10b981',
-          '#6366f1',
-        ],
+        data: typeValues,
+        backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#6366f1'],
         borderRadius: 8,
       },
     ],
   };
+
+  if (!stats) return <div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>Loading Dashboard Database...</div>;
+
 
   return (
     <div style={{
@@ -159,7 +180,7 @@ export default function DashboardPage() {
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, marginTop: 16 }}>감지된 사고 현황</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 8 }}>
-                 <h3 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>{summary.totalAccidents.toLocaleString()}</h3>
+                 <h3 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>{totalAccidents.toLocaleString()}</h3>
                  <span style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', fontWeight: 600 }}>Total Cases</span>
               </div>
             </div>
@@ -173,7 +194,7 @@ export default function DashboardPage() {
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, marginTop: 16 }}>모니터링 기업 수</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 8 }}>
-                 <h3 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>{summary.uniqueCompanies.toLocaleString()}</h3>
+                 <h3 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>{companiesJson.length.toLocaleString()}</h3>
                  <span style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', fontWeight: 600 }}>Monitored</span>
               </div>
             </div>
@@ -187,7 +208,7 @@ export default function DashboardPage() {
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, marginTop: 16 }}>평균사고위험지수</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 8 }}>
-                 <h3 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>{summary.avgRiskIndex}</h3>
+                 <h3 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>{Math.round(stats.descriptive.numeric.find((n: any)=>n.feature==='사고위험도지수(Risk_Index)')?.mean || 50)}</h3>
                  <span style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', fontWeight: 600 }}>Risk avg</span>
               </div>
             </div>
@@ -201,7 +222,7 @@ export default function DashboardPage() {
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, marginTop: 16 }}>치명적 고위험 알림</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 8 }}>
-                 <h3 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>{summary.highRiskCount}</h3>
+                 <h3 style={{ fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>{companiesJson.filter(c => c['보험료_등급'] === 'E').length}</h3>
                  <span style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', fontWeight: 600 }}>High Risk</span>
               </div>
             </div>
@@ -271,17 +292,17 @@ export default function DashboardPage() {
               <button style={{ color: '#06b6d4', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>Risk Profile Matrix</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
-              {Object.entries(summary.topCompanies).map(([name, risk], i) => (
-                <div key={name} style={{ background: '#fafafa', border: '1px solid var(--border-default)', padding: 16, borderRadius: 10, cursor: 'pointer' }}
+              {companiesJson.slice(0, 5).map((c, i) => (
+                <div key={c['시공회사명']} style={{ background: '#fafafa', border: '1px solid var(--border-default)', padding: 16, borderRadius: 10, cursor: 'pointer' }}
                      onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.3)'}
                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Tier {i+1}</span>
-                    <span style={{ fontSize: 10, color: '#ef4444', fontWeight: 700, padding: '2px 8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: 12 }}>{(risk as number).toFixed(1)}</span>
+                    <span style={{ fontSize: 10, color: '#ef4444', fontWeight: 700, padding: '2px 8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: 12 }}>{c['avg_risk_index']}</span>
                   </div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</h4>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c['시공회사명']}</h4>
                   <div style={{ marginTop: 16, height: 4, width: '100%', background: 'var(--border-default)', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', background: '#ef4444', opacity: 0.7, width: `${risk}%` }}></div>
+                    <div style={{ height: '100%', background: '#ef4444', opacity: 0.7, width: `${Math.min(c['avg_risk_index'], 100)}%` }}></div>
                   </div>
                 </div>
               ))}

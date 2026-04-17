@@ -87,7 +87,7 @@ for i in tqdm(range(0, len(records), BATCH_SIZE)):
     
     try:
         results = genai.embed_content(
-            model="models/text-embedding-004",
+            model="models/embedding-001",
             content=batch_texts,
             task_type="retrieval_document"
         )
@@ -105,7 +105,7 @@ for i in tqdm(range(0, len(records), BATCH_SIZE)):
         time.sleep(3)
         try:
             results = genai.embed_content(
-                model="models/text-embedding-004",
+                model="models/embedding-001",
                 content=batch_texts,
                 task_type="retrieval_document"
             )

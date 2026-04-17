@@ -10,30 +10,7 @@ import CardHeader from '@/components/CardHeader';
 const COLORS = ['#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#facc15', '#10b981', '#f59e0b', '#6366f1'];
 const PIE_COLORS = ['#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#facc15'];
 
-const accidentTypeData = [
-  { name: '추락 (Fall)', value: 12500 },
-  { name: '전도 (Slip/Trip)', value: 8300 },
-  { name: '협착 (Caught In)', value: 6200 },
-  { name: '맞음 (Struck By)', value: 5100 },
-  { name: '충돌 (Collision)', value: 4800 },
-];
-
-const causeData = [
-  { name: '작업자 부주의', value: 45 },
-  { name: '안전수칙 미준수', value: 25 },
-  { name: '시설물 결함', value: 15 },
-  { name: '관리감독 소홀', value: 10 },
-  { name: '기타', value: 5 },
-];
-
-const processData = [
-  { process: '가설공사', accidents: 8500 },
-  { process: '철근콘크리트', accidents: 7200 },
-  { process: '토공사', accidents: 5400 },
-  { process: '해체/철거', accidents: 4100 },
-  { process: '마감/수장', accidents: 3800 },
-  { process: '설비작업', accidents: 2600 }
-];
+// Dynamic data will be generated inside the component from the API response
 
 function DynamicChart({ data, xKey, yKey, color }: { data: any[], xKey: string, yKey: string, color: string }) {
   if (!data) return null;
@@ -105,6 +82,15 @@ export default function DescriptiveStatsPage() {
   if (loading) return <div className="p-8 text-slate-500 font-medium">데이터 로딩 중...</div>;
   if (!data) return <div className="p-8 text-red-500 font-medium">통계 데이터를 불러오지 못했습니다.</div>;
 
+  const typeCat = data.categorical.find((c: any) => c.feature === '사고유형_분류(KOSHA)');
+  let accidentTypeData = typeCat ? typeCat.counts.slice(0, 5).map((c: any) => ({name: c.label, value: c.count})) : [];
+
+  const causeCat = data.categorical.find((c: any) => c.feature === '사고객체_분류(KOSHA)');
+  let causeData = causeCat ? causeCat.counts.slice(0, 6).map((c: any) => ({name: c.label, value: c.count})) : [];
+
+  const processCat = data.categorical.find((c: any) => c.feature === '대공종');
+  let processData = processCat ? processCat.counts.slice(0, 6).map((c: any) => ({process: c.label, accidents: c.count})) : [];
+
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', height: '100vh',
@@ -147,7 +133,7 @@ export default function DescriptiveStatsPage() {
                       innerRadius={70} outerRadius={100} paddingAngle={5}
                       dataKey="value"
                     >
-                      {accidentTypeData.map((entry, index) => (
+                      {accidentTypeData.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -168,7 +154,7 @@ export default function DescriptiveStatsPage() {
                     <YAxis dataKey="name" type="category" stroke="#64748b" width={90} tick={{fontSize: 10}} />
                     <RechartsTooltip cursor={{fill: 'rgba(226, 232, 240, 0.4)'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
                     <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={24}>
-                      {causeData.map((entry, index) => (
+                      {causeData.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Bar>

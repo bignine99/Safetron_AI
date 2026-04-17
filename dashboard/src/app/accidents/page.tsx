@@ -190,8 +190,13 @@ export default function AccidentExplorerPage() {
 
   /* D3 force graph */
   useEffect(() => {
-  /* 3D Force graph handles resizing internally and works directly with graphData */
-  }, [graphData, loadSubGraph]);
+    if (graphData && fgRef.current) {
+      setTimeout(() => {
+        // Move camera to bottom-right to make the graph appear in the top-left
+        fgRef.current.cameraPosition({ x: 100, y: -100, z: 350 }, { x: 0, y: 0, z: 0 }, 1000);
+      }, 300);
+    }
+  }, [graphData]);
 
   // Pass active selection upstream into the URL to ensure full pipeline continuity
   useEffect(() => {
@@ -326,7 +331,9 @@ export default function AccidentExplorerPage() {
                   onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-muted)'; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border-default)'; e.currentTarget.style.boxShadow = 'none'; }}
                 />
-                {searching && <Loader2 style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: 'var(--accent)', animation: 'spin 1s linear infinite' }} />}
+                <button type="submit" style={{ position: 'absolute', right: 5, top: '50%', transform: 'translateY(-50%)', background: 'var(--accent)', border: 'none', color: 'white', padding: '4px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                  {searching ? <Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} /> : '검색'}
+                </button>
               </div>
             </form>
           </div>
@@ -484,6 +491,21 @@ export default function AccidentExplorerPage() {
                   onNodeClick={(n: any) => setSelectedNode(n as GraphNode)}
                   onNodeRightClick={(n: any) => loadSubGraph(n.id)}
                 />
+                
+                {/* ── Legend (9 Items) ── */}
+                <div style={{
+                  position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+                  display: 'flex', gap: 16, background: 'rgba(255,255,255,0.95)',
+                  padding: '10px 24px', borderRadius: 30, boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  backdropFilter: 'blur(10px)', zIndex: 10, border: '1px solid rgba(0,0,0,0.05)'
+                }}>
+                  {['AccidentType', 'Accident', 'Company', 'Agent', 'Location', 'Component', 'Equipment', 'Tool', 'Cause'].map(key => (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={dot(NODE_COLORS[key], 10)} />
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>{NODE_KR[key]}</span>
+                    </div>
+                  ))}
+                </div>
             </div>
           )}
 

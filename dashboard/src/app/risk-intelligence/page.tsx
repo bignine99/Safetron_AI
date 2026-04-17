@@ -116,7 +116,7 @@ export default function RiskIntelligencePage() {
   // Counter animations
   const nodeCount = useCountUp(38412, 2500, statsSection.inView);
   const edgeCount = useCountUp(171789, 2500, statsSection.inView);
-  const accidentCount = useCountUp(37197, 2000, statsSection.inView);
+  const accidentCount = useCountUp(29709, 2000, statsSection.inView); // Updated to actual length of refined data
   const companyCount = useCountUp(1148, 1500, statsSection.inView);
 
   // Pipeline flow animation
@@ -353,7 +353,7 @@ export default function RiskIntelligencePage() {
               <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 14 }}>데이터 가공 방식</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {[
-                  { icon: BarChart3, title: '통계형 데이터 (수치형/범주형)', desc: '37,197건의 사건사고 데이터를 정량화하여 DB 구축', color: '#3b82f6' },
+                  { icon: BarChart3, title: '통계형 데이터 (수치형/범주형)', desc: '29,709건의 정제된 사건사고 데이터를 정량화하여 DB 구축', color: '#3b82f6' },
                   { icon: BookOpen, title: '텍스트 데이터 (비정형)', desc: '사고 경위서, 안전점검 보고서 등 자연어 데이터 구조화', color: '#8b5cf6' },
                   { icon: Globe, title: '외부 API 기업정보 연동', desc: '금융감독원·DART 등 외부 공공 데이터베이스 연계', color: '#0ea5e9' },
                 ].map((item, i) => {

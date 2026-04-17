@@ -14,7 +14,7 @@ ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend
 );
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 
 const MOCK_MATRIX_ROWS = ['해체/철거', '굴착/토공', '철근/콘크리트', '건축마감', '설비/전기'];
@@ -89,6 +89,7 @@ const weatherChartOptions: ChartOptions = {
 function CoverageHeatmapContent() {
   const [showGuide, setShowGuide] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
   
   const passedCompany = searchParams.get('company');
   let companyData = defaultData;
@@ -284,6 +285,31 @@ function CoverageHeatmapContent() {
               </p>
             </div>
           </div>
+        </div>
+        
+        {/* Navigation Button for Next Pipeline Module */}
+        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <button 
+            onClick={() => router.push(`/underwriter-scorecard?company=${encodeURIComponent(companyData.name)}`)}
+            style={{ 
+              background: 'linear-gradient(90deg, #2563eb, #3b82f6)', 
+              color: 'white', border: 'none', padding: '16px 48px', 
+              borderRadius: 30, fontSize: 18, fontWeight: 800, 
+              cursor: 'pointer', boxShadow: '0 10px 20px rgba(59, 130, 246, 0.3)',
+              display: 'flex', alignItems: 'center', gap: 12,
+              transition: 'all 0.3s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 15px 25px rgba(59, 130, 246, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 10px 20px rgba(59, 130, 246, 0.3)';
+            }}
+          >
+            <Cpu size={24} /> 다음 모듈로 평가 이관
+          </button>
         </div>
 
       </div>
