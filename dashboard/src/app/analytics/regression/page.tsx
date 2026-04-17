@@ -176,11 +176,11 @@ export default function RegressionPage() {
         <h2 style={{ fontSize: 16, fontWeight: 700, color: PALETTE.deep, marginBottom: 16, paddingBottom: 8, borderBottom: `1px solid ${PALETTE.slateLight}`}}>
           단일 선형 회귀 분석 상세 (Simple Linear Regressions)
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, marginBottom: 40 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24, marginBottom: 40 }}>
           {data.simple.map((mod: any, idx: number) => {
             return (
               <ChartCard key={`sim-${idx}`} title={`[Simple] ${mod.x} ➡️ ${mod.y}`} subtitle={`R²: ${mod.r2.toFixed(4)} • Coef: ${mod.coef.toFixed(4)}`} colSpan={1}>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={280}>
                   <ScatterChart margin={{ top: 10, right: 10, bottom: 5, left: -20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                     <XAxis type="number" dataKey="x" name={mod.x} axisLine={false} tickLine={false} tick={{fontSize:9, fill: PALETTE.slate}} />
