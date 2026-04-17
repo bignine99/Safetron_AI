@@ -53,6 +53,22 @@ export default function RiskMapPage() {
   const [data, setData] = useState<any>(null);
   const [activeNode, setActiveNode] = useState<string | null>(null);
 
+  // Custom Content for Treemap to show labels
+  const CustomizedTreemapContent = (props: any) => {
+    const { depth, x, y, width, height, name, bgColors } = props;
+    if (depth < 1 || !name) return null;
+    return (
+      <g>
+        <rect x={x} y={y} width={width} height={height} style={{ fill: COLORS.secondary, stroke: '#fff', strokeWidth: 2, strokeOpacity: 1 }} />
+        {width > 30 && height > 20 ? (
+          <text x={x + width / 2} y={y + height / 2 + 4} fill="#fff" fontSize={11} fontWeight={600} textAnchor="middle">
+            {name.length > 8 ? name.substring(0, 8) + '...' : name}
+          </text>
+        ) : null}
+      </g>
+    );
+  };
+
   useEffect(() => {
     fetch('/safetron/data/statistical_report.json')
       .then(res => res.json())
@@ -74,14 +90,14 @@ export default function RiskMapPage() {
 
     // 2. Treemap Chart Data: Categorical Frequencies
     const categoryFeatures = data.descriptive.categorical || [];
-    const accidentObj = categoryFeatures.find((c: any) => c.feature === '사고객체') || categoryFeatures[0];
+    const accidentObj = categoryFeatures.find((c: any) => c.feature === '사고객체_분류(KOSHA)') || categoryFeatures.find((c: any) => c.feature === '사고객체') || categoryFeatures[0];
     const treemapRaw = accidentObj ? accidentObj.counts.map((c: any) => ({
       name: c.value === '-' ? '기타/미분류' : c.value,
       size: c.count
     })).filter((d: any) => d.size > 10).slice(0, 15) : [];
     
     // Treemap in Recharts often requires a root 'children' structure
-    const treemapData = treemapRaw.length > 0 ? [{ name: '사고 객체', children: treemapRaw }] : [];
+    const treemapData = treemapRaw.length > 0 ? [{ name: '사고 객체 통합', children: treemapRaw }] : [];
 
     // 3. Gauge Chart Data: Average Risk Index compared to logical max
     const riskFeat = features.find((f: any) => f.feature === '사고위험도지수(Risk_Index)');
@@ -98,17 +114,17 @@ export default function RiskMapPage() {
     const heatMapData = corrs.map((c: any) => ({
       x: uniqueVars.indexOf(c.var1),
       y: uniqueVars.indexOf(c.var2),
-      z: Math.abs(c.pearson_r),
+      z: Math.abs(c.r),
       name: `${c.var1} - ${c.var2}`,
-      val: c.pearson_r
+      val: c.r
     }));
 
     // 5. Bubble Chart: Just top correlations
-    const bubbleData = [...corrs].sort((a, b) => Math.abs(b.pearson_r) - Math.abs(a.pearson_r)).slice(0, 30).map((c: any, i) => ({
+    const bubbleData = [...corrs].sort((a, b) => Math.abs(b.r) - Math.abs(a.r)).slice(0, 30).map((c: any, i) => ({
       id: i,
-      x: c.pearson_r,
-      y: c.p_value,
-      z: Math.abs(c.pearson_r) * 1000,
+      x: c.r,
+      y: c.p,
+      z: Math.abs(c.r) * 1000,
       name: `${c.var1} vs ${c.var2}`
     }));
 
@@ -140,12 +156,12 @@ export default function RiskMapPage() {
       };
     }) || [];
 
-    // 8. Donut Chart: 기상상태
-    const weatherObj = categoryFeatures.find((c: any) => c.feature === '기상상태');
+    // 8. Donut Chart: 기상상태 -> 사고유형
+    const weatherObj = categoryFeatures.find((c: any) => c.feature === '사고유형_분류(KOSHA)');
     const weatherData = weatherObj ? weatherObj.counts.map((c: any) => ({ name: c.value === '-' ? '기타/미분류' : c.value, value: c.count })).slice(0, 5) : [];
 
-    // 9. Horizontal Bar: 작업공종
-    const processObj = categoryFeatures.find((c: any) => c.feature === '작업공종');
+    // 9. Horizontal Bar: 작업공종 -> 공사종류
+    const processObj = categoryFeatures.find((c: any) => c.feature === '공사종류');
     const processData = processObj ? processObj.counts.map((c: any) => ({ name: c.value === '-' ? '기타/미분류' : c.value, size: c.count })).slice(0, 10) : [];
 
     // 10. Area Chart: 산업재해율(%) Histogram
@@ -231,6 +247,10 @@ export default function RiskMapPage() {
                 <div style={{ fontSize: '11px', color: COLORS.muted, fontWeight: 600, letterSpacing: '0.1em' }}>AVG RISK INDEX</div>
               </div>
             </div>
+            <div style={{ marginTop: '16px', background: `${COLORS.muted}10`, padding: '16px', borderRadius: '6px', fontSize: '11px', color: COLORS.slate, lineHeight: 1.5 }}>
+              <strong>상세 설명: </strong>이 수치는 전체 사고 데이터(Risk Factors)를 기반으로 산출된 평균 위험 지수(Average Risk Index)입니다. <br/>
+              현재 게이지 값 {gaugeData[0]?.value.toFixed(2)} 기준, 시스템이 요구하는 안전 임계치를 초과할 가능성이 있어 작업 공정에 대한 주의가 요구됩니다. 지속적인 모니터링이 필요합니다.
+            </div>
           </div>
 
           {/* Radar Chart */}
@@ -267,6 +287,7 @@ export default function RiskMapPage() {
                 stroke="#fff"
                 fill={COLORS.secondary}
                 style={{ cursor: 'pointer' }}
+                content={<CustomizedTreemapContent />}
                 isAnimationActive={true}
                 animationDuration={1500}
               >
@@ -355,7 +376,7 @@ export default function RiskMapPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flexShrink: 0, height: '480px' }}>
           {/* Donut Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
-            <div style={CHART_STYLES.title}><Activity size={16} /> 기상 상태별 발생 빈도 도넛</div>
+            <div style={CHART_STYLES.title}><Activity size={16} /> 주요 사고 유형 빈도 도넛</div>
             <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -384,7 +405,7 @@ export default function RiskMapPage() {
 
           {/* Horizontal Bar Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
-            <div style={CHART_STYLES.title}><BarChart2 size={16} /> 작업 공종별 리스크 분포</div>
+            <div style={CHART_STYLES.title}><BarChart2 size={16} /> 공사 종류별 집중 분포 (Horizontal Bar)</div>
             <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={processData} layout="vertical" margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
