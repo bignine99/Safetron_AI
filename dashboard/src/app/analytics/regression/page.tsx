@@ -146,7 +146,7 @@ export default function RegressionPage() {
                       <YAxis type="number" dataKey="predicted" name="Predicted" axisLine={false} tickLine={false} tick={{fontSize:10, fill: PALETTE.slate}} />
                       <RechartsTooltip cursor={{strokeDasharray: '3 3'}} contentStyle={{ borderRadius: '6px', border: '1px solid #cbd5e1' }} />
                       <Scatter name="Actual vs Predicted" data={chartData} fill={PALETTE.primary} fillOpacity={0.6} />
-                      <ReferenceLine areaType="polygon" x={0} stroke={PALETTE.slate} strokeDasharray="3 3" />
+                      <ReferenceLine x={0} stroke={PALETTE.slate} strokeDasharray="3 3" />
                     </ScatterChart>
                   </ResponsiveContainer>
                 </ChartCard>
