@@ -198,7 +198,7 @@ export default function RiskMapPage() {
       <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, overflowY: 'auto' }}>
         
         {/* ROW 1: Gauge & Radar */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '24px', flexShrink: 0, height: '900px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '24px', flexShrink: 0, height: '480px' }}>
           {/* Gauge Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><Activity size={16} /> 종합 위험 지수 게이지</div>
@@ -254,7 +254,7 @@ export default function RiskMapPage() {
         </div>
 
         {/* ROW 2: Treemap & HeatMap (Scatter grid) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1.5fr)', gap: '24px', flexShrink: 0, height: '900px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1.5fr)', gap: '24px', flexShrink: 0, height: '480px' }}>
           {/* Treemap */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><ShieldAlert size={16} /> 사고 객체별 발생 비중 트리맵</div>
@@ -304,7 +304,7 @@ export default function RiskMapPage() {
         </div>
 
         {/* ROW 3: Stacked Column & Box Plot (Range Bar) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flexShrink: 0, height: '900px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flexShrink: 0, height: '480px' }}>
           {/* Stacked Column Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><Cpu size={16} /> 공정 구간별 리스크 중첩 누적 세로 막대</div>
@@ -352,7 +352,7 @@ export default function RiskMapPage() {
         </div>
 
         {/* ROW 4: Donut & Horizontal Bar */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flexShrink: 0, height: '900px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flexShrink: 0, height: '480px' }}>
           {/* Donut Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><Activity size={16} /> 기상 상태별 발생 빈도 도넛</div>
@@ -407,7 +407,7 @@ export default function RiskMapPage() {
         </div>
 
         {/* ROW 5: Area Chart & Line Chart */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1.5fr)', gap: '24px', flexShrink: 0, height: '900px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1.5fr)', gap: '24px', flexShrink: 0, height: '480px' }}>
           {/* Area Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><TrendingUp size={16} /> 산업재해율(%) 히스토그램 파동</div>
