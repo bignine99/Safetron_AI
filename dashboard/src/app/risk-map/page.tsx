@@ -92,7 +92,7 @@ export default function RiskMapPage() {
     const categoryFeatures = data.descriptive.categorical || [];
     const accidentObj = categoryFeatures.find((c: any) => c.feature === '사고객체_분류(KOSHA)') || categoryFeatures.find((c: any) => c.feature === '사고객체') || categoryFeatures[0];
     const treemapRaw = accidentObj ? accidentObj.counts.map((c: any) => ({
-      name: c.value === '-' ? '기타/미분류' : c.value,
+      name: c.label === '-' ? '기타/미분류' : c.label,
       size: c.count
     })).filter((d: any) => d.size > 10).slice(0, 15) : [];
     
@@ -158,11 +158,11 @@ export default function RiskMapPage() {
 
     // 8. Donut Chart: 기상상태 -> 사고유형
     const weatherObj = categoryFeatures.find((c: any) => c.feature === '사고유형_분류(KOSHA)');
-    const weatherData = weatherObj ? weatherObj.counts.map((c: any) => ({ name: c.value === '-' ? '기타/미분류' : c.value, value: c.count })).slice(0, 5) : [];
+    const weatherData = weatherObj ? weatherObj.counts.map((c: any) => ({ name: c.label === '-' ? '기타/미분류' : c.label, value: c.count })).slice(0, 5) : [];
 
     // 9. Horizontal Bar: 작업공종 -> 공사종류
     const processObj = categoryFeatures.find((c: any) => c.feature === '공사종류');
-    const processData = processObj ? processObj.counts.map((c: any) => ({ name: c.value === '-' ? '기타/미분류' : c.value, size: c.count })).slice(0, 10) : [];
+    const processData = processObj ? processObj.counts.map((c: any) => ({ name: c.label === '-' ? '기타/미분류' : c.label, size: c.count })).slice(0, 10) : [];
 
     // 10. Area Chart: 산업재해율(%) Histogram
     const hzFeat1 = features.find((f: any) => f.feature === '산업재해율(%)');
@@ -381,7 +381,7 @@ export default function RiskMapPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip contentStyle={{ background: '#fff', border: `1px solid ${COLORS.muted}20`, borderRadius: '6px', fontSize: '11px', fontWeight: 600 }} />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600 }} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600 }} payload={weatherData.map((item: any, index: number) => ({ id: item.name, type: 'circle', value: item.name, color: [COLORS.primary, COLORS.secondary, COLORS.tertiary, COLORS.accent, COLORS.warn][index % 5] }))} />
                   <Pie
                     data={weatherData}
                     cx="50%"
