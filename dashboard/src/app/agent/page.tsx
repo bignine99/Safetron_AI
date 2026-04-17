@@ -73,8 +73,13 @@ export default function PredictionAgentPage() {
           return item ? item.counts.map((c: any) => c.label).slice(0, 15) : [];
         };
 
-        const cats = findOpts('공사종류');
-        const procs = findOpts('대공종');
+        let cats = findOpts('공사종류').map(c => c.split('/').pop() || c);
+        cats = Array.from(new Set(cats));
+        
+        let procs = findOpts('대공종').map(p => p.trim().replace(/^7\.\s*기타\s*공사$/i, '16 기타공사').replace(/^7\.\s*기타$/i, '16 기타공사'));
+        procs = Array.from(new Set(procs)).sort((a, b) => a.localeCompare(b));
+        procs.unshift('00. 전체공사');
+        
         const types = findOpts('사고유형_분류(KOSHA)');
 
         const sortedComps = [...companiesJson]
