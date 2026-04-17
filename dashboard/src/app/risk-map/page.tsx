@@ -6,9 +6,9 @@ import {
   Treemap, ResponsiveContainer, Tooltip,
   PieChart, Pie, Cell,
   ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid,
-  BarChart, Bar, Legend, ComposedChart, Line
+  BarChart, Bar, Legend, ComposedChart, Line, AreaChart, Area, LineChart
 } from 'recharts';
-import { Activity, Zap, ShieldAlert, Cpu } from 'lucide-react';
+import { Activity, Zap, ShieldAlert, Cpu, BarChart2, TrendingUp } from 'lucide-react';
 
 const COLORS = {
   deep: '#0f172a',
@@ -61,8 +61,8 @@ export default function RiskMapPage() {
   }, []);
 
   // Process data for charts
-  const { radarData, treemapData, gaugeData, heatMapData, bubbleData, boxPlotData, stackedData } = useMemo(() => {
-    if (!data) return { radarData: [], treemapData: [], gaugeData: [], heatMapData: [], bubbleData: [], boxPlotData: [], stackedData: [] };
+  const { radarData, treemapData, gaugeData, heatMapData, bubbleData, boxPlotData, stackedData, weatherData, processData, areaHistData1, lineHistData2 } = useMemo(() => {
+    if (!data) return { radarData: [], treemapData: [], gaugeData: [], heatMapData: [], bubbleData: [], boxPlotData: [], stackedData: [], weatherData: [], processData: [], areaHistData1: [], lineHistData2: [] };
 
     // 1. Radar Chart Data: 9 Nodes mean normalized
     const features = data.descriptive.numeric || [];
@@ -140,7 +140,23 @@ export default function RiskMapPage() {
       };
     }) || [];
 
-    return { radarData, treemapData, gaugeData, heatMapData, bubbleData, boxPlotData, stackedData, uniqueVars };
+    // 8. Donut Chart: 기상상태
+    const weatherObj = categoryFeatures.find((c: any) => c.feature === '기상상태');
+    const weatherData = weatherObj ? weatherObj.counts.map((c: any) => ({ name: c.value === '-' ? '기타/미분류' : c.value, value: c.count })).slice(0, 5) : [];
+
+    // 9. Horizontal Bar: 작업공종
+    const processObj = categoryFeatures.find((c: any) => c.feature === '작업공종');
+    const processData = processObj ? processObj.counts.map((c: any) => ({ name: c.value === '-' ? '기타/미분류' : c.value, size: c.count })).slice(0, 10) : [];
+
+    // 10. Area Chart: 산업재해율(%) Histogram
+    const hzFeat1 = features.find((f: any) => f.feature === '산업재해율(%)');
+    const areaHistData1 = hzFeat1?.histogram?.map((h: any) => ({ name: h.bin, count: h.count })) || [];
+
+    // 11. Line Chart: 최근10년_사망사고건수 Histogram
+    const hzFeat2 = features.find((f: any) => f.feature === '최근10년_사망사고건수');
+    const lineHistData2 = hzFeat2?.histogram?.map((h: any) => ({ name: h.bin, count: h.count })) || [];
+
+    return { radarData, treemapData, gaugeData, heatMapData, bubbleData, boxPlotData, stackedData, uniqueVars, weatherData, processData, areaHistData1, lineHistData2 };
   }, [data]);
 
   if (!data) {
@@ -182,7 +198,7 @@ export default function RiskMapPage() {
       <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, overflowY: 'auto' }}>
         
         {/* ROW 1: Gauge & Radar */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '24px', height: '360px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '24px', height: '640px' }}>
           {/* Gauge Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><Activity size={16} /> 종합 위험 지수 게이지</div>
@@ -238,7 +254,7 @@ export default function RiskMapPage() {
         </div>
 
         {/* ROW 2: Treemap & HeatMap (Scatter grid) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1.5fr)', gap: '24px', height: '400px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1.5fr)', gap: '24px', height: '800px' }}>
           {/* Treemap */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><ShieldAlert size={16} /> 사고 객체별 발생 비중 트리맵</div>
@@ -288,7 +304,7 @@ export default function RiskMapPage() {
         </div>
 
         {/* ROW 3: Stacked Column & Box Plot (Range Bar) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', height: '400px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', height: '800px' }}>
           {/* Stacked Column Chart */}
           <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
             <div style={CHART_STYLES.title}><Cpu size={16} /> 공정 구간별 리스크 중첩 누적 세로 막대</div>
@@ -331,6 +347,96 @@ export default function RiskMapPage() {
                 <Line dataKey="mean" stroke={COLORS.danger} strokeWidth={0} dot={{ r: 4, fill: COLORS.danger, strokeWidth: 0 }} activeDot={{ r: 6 }} isAnimationActive={true} name="Mean" />
               </ComposedChart>
             </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* ROW 4: Donut & Horizontal Bar */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', height: '700px' }}>
+          {/* Donut Chart */}
+          <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
+            <div style={CHART_STYLES.title}><Activity size={16} /> 기상 상태별 발생 빈도 도넛</div>
+            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip contentStyle={{ background: '#fff', border: `1px solid ${COLORS.muted}20`, borderRadius: '6px', fontSize: '11px', fontWeight: 600 }} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600 }} />
+                  <Pie
+                    data={weatherData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="50%"
+                    outerRadius="80%"
+                    dataKey="value"
+                    nameKey="name"
+                    stroke="none"
+                    isAnimationActive={true}
+                    animationDuration={1500}
+                  >
+                    {weatherData.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={[COLORS.primary, COLORS.secondary, COLORS.tertiary, COLORS.accent, COLORS.warn][index % 5]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Horizontal Bar Chart */}
+          <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
+            <div style={CHART_STYLES.title}><BarChart2 size={16} /> 작업 공종별 리스크 분포</div>
+            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={processData} layout="vertical" margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={`${COLORS.muted}20`} />
+                  <XAxis type="number" tick={{ fontSize: 10 }} stroke={`${COLORS.muted}`} />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} stroke={`${COLORS.muted}`} width={80} interval={0} />
+                  <Tooltip 
+                    contentStyle={{ background: '#fff', border: `1px solid ${COLORS.muted}20`, borderRadius: '6px', fontSize: '11px', fontWeight: 600 }}
+                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                  />
+                  <Bar dataKey="size" fill={COLORS.secondary} name="발생건수" radius={[0, 4, 4, 0]} isAnimationActive={true} animationDuration={1500}>
+                    {processData.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? COLORS.secondary : COLORS.primary} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* ROW 5: Area Chart & Line Chart */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1.5fr)', gap: '24px', height: '700px' }}>
+          {/* Area Chart */}
+          <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
+            <div style={CHART_STYLES.title}><TrendingUp size={16} /> 산업재해율(%) 히스토그램 파동</div>
+            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={areaHistData1} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={`${COLORS.muted}20`} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke={`${COLORS.muted}`} angle={-30} textAnchor="end" />
+                  <YAxis tick={{ fontSize: 10 }} stroke={`${COLORS.muted}`} />
+                  <Tooltip contentStyle={{ background: '#fff', border: `1px solid ${COLORS.muted}20`, borderRadius: '6px', fontSize: '11px', fontWeight: 600 }} />
+                  <Area type="monotone" dataKey="count" stroke={COLORS.primary} fillOpacity={0.4} fill={COLORS.tertiary} name="분포 빈도" isAnimationActive={true} animationDuration={1500} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Line Chart */}
+          <div style={{...CHART_STYLES.card, '&:hover': { transform: 'translateY(-4px)' }} as any}>
+            <div style={CHART_STYLES.title}><TrendingUp size={16} /> 사망사고건수 이상치 감지 선형 분포</div>
+            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={lineHistData2} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={`${COLORS.muted}20`} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke={`${COLORS.muted}`} angle={-30} textAnchor="end" />
+                  <YAxis tick={{ fontSize: 10 }} stroke={`${COLORS.muted}`} />
+                  <Tooltip contentStyle={{ background: '#fff', border: `1px solid ${COLORS.muted}20`, borderRadius: '6px', fontSize: '11px', fontWeight: 600 }} />
+                  <Line type="monotone" dataKey="count" stroke={COLORS.danger} strokeWidth={3} dot={{ r: 4, fill: COLORS.danger, strokeWidth: 0 }} activeDot={{ r: 6 }} name="빈도 수준" isAnimationActive={true} animationDuration={1500} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
