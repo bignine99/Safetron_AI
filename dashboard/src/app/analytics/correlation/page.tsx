@@ -73,9 +73,9 @@ export default function CorrelationPage() {
 
   // Sort & Prepare Datasets
   const sortedData = [...data].sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
-  const topCorrs = sortedData.slice(0, 10).map((d:any) => ({ name: `${d.var1.slice(0,5)} vs ${d.var2.slice(0,5)}`, r: d.r }));
-  const posCorrs = [...data].sort((a,b) => b.r - a.r).slice(0, 10).map((d:any) => ({ name: `${d.var1.slice(0,5)} vs ${d.var2.slice(0,5)}`, r: d.r }));
-  const negCorrs = [...data].sort((a,b) => a.r - b.r).slice(0, 10).map((d:any) => ({ name: `${d.var1.slice(0,5)} vs ${d.var2.slice(0,5)}`, r: d.r }));
+  const topCorrs = sortedData.slice(0, 10).map((d:any) => ({ name: `${d.var1} vs ${d.var2}`, r: d.r }));
+  const posCorrs = [...data].sort((a,b) => b.r - a.r).slice(0, 10).map((d:any) => ({ name: `${d.var1} vs ${d.var2}`, r: d.r }));
+  const negCorrs = [...data].sort((a,b) => a.r - b.r).slice(0, 10).map((d:any) => ({ name: `${d.var1} vs ${d.var2}`, r: d.r }));
 
   // Scatter plot: R vs Abs(R) or P-value
   const scatterData = sortedData.slice(0, 100).map((d:any) => ({
@@ -128,10 +128,10 @@ export default function CorrelationPage() {
           {/* C1: Positives Bar */}
           <ChartCard title="강한 양의 상관관계 (Top 10)" subtitle="Strongest Positive Variable Pairs" colSpan={2}>
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart layout="vertical" data={posCorrs} margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
+              <BarChart layout="vertical" data={posCorrs} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
                 <XAxis type="number" domain={[0, 1]} axisLine={false} tickLine={false} tick={{fontSize: 10, fill: PALETTE.slate}} />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: PALETTE.deep, fontWeight: 600}} width={90} />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: PALETTE.deep, fontWeight: 600}} width={150} />
                 <RechartsTooltip cursor={{fill: 'rgba(241, 245, 249, 0.5)'}} contentStyle={{borderRadius: '6px', border: '1px solid #cbd5e1'}} />
                 <Bar dataKey="r" fill={PALETTE.primary} radius={[0, 6, 6, 0]} barSize={16} />
               </BarChart>
@@ -141,10 +141,10 @@ export default function CorrelationPage() {
           {/* C2: Negatives Bar */}
           <ChartCard title="강한 음의 상관관계 (Top 10)" subtitle="Strongest Negative Variable Pairs" colSpan={2}>
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart layout="vertical" data={negCorrs} margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
+              <BarChart layout="vertical" data={negCorrs} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
                 <XAxis type="number" domain={[-1, 0]} axisLine={false} tickLine={false} tick={{fontSize: 10, fill: PALETTE.slate}} />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: PALETTE.deep, fontWeight: 600}} width={90} />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: PALETTE.deep, fontWeight: 600}} width={150} />
                 <RechartsTooltip cursor={{fill: 'rgba(241, 245, 249, 0.5)'}} contentStyle={{borderRadius: '6px', border: '1px solid #cbd5e1'}} />
                 <Bar dataKey="r" fill={PALETTE.deep} radius={[6, 0, 0, 6]} barSize={16} />
               </BarChart>
