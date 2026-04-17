@@ -768,20 +768,20 @@ export default function AccidentExplorerPage() {
           }}>
             {/* Left: Legend */}
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'nowrap', pointerEvents: 'auto',
+              display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'nowrap', pointerEvents: 'auto',
               overflowX: 'auto' // Prevent wrapping, allow horizontal scroll if screen is too narrow
             }} className="custom-scrollbar-hide">
               {Object.entries(NODE_COLORS).map(([label, color]) => (
                 <div key={label} style={{
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '4px 10px', borderRadius: 16,
-                  border: `1px solid ${color}30`, background: 'rgba(255, 255, 255, 0.85)',
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  padding: '3px 8px', borderRadius: 12,
+                  border: `1px solid ${color}40`, background: 'rgba(255, 255, 255, 0.85)',
                   backdropFilter: 'blur(4px)', flexShrink: 0,
-                  fontSize: 11, fontWeight: 600, color: color,
-                  boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+                  fontSize: 9.5, fontWeight: 700, color: color,
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
                 }}>
-                  <div style={dot(color, 6)} />
-                  <span style={{ whiteSpace: 'nowrap' }}>{NODE_KR[label] || label}</span>
+                  <div style={dot(color, 5)} />
+                  <span style={{ whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>{NODE_KR[label] || label}</span>
                 </div>
               ))}
             </div>
