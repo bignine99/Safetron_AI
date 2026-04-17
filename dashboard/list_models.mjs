@@ -1,5 +1,5 @@
 async function listModels() {
-    const key = "AIzaSyDZ0QWi-KHqFSTFWdTdEE_KdnjMMyJ3PUo";
+    const key = process.env.GEMINI_API_KEY || "";
     try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
         const data = await res.json();
