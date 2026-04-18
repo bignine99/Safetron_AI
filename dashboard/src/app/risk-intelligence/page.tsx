@@ -98,10 +98,10 @@ export default function RiskIntelligencePage() {
 
   return (
     <div style={{
-      width: '100%', minHeight: '100vh',
+      position: 'absolute', inset: 0,
       fontFamily: "'Pretendard', 'Inter', sans-serif",
       color: '#334155', background: '#f8fafc',
-      overflowX: 'hidden'
+      overflowX: 'hidden', overflowY: 'auto'
     }}>
       {/* ══════════ Header ══════════ */}
       <div style={{
