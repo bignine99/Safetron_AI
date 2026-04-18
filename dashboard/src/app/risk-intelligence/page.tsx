@@ -98,10 +98,10 @@ export default function RiskIntelligencePage() {
 
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', height: '100vh',
+      width: '100%', minHeight: '100vh',
       fontFamily: "'Pretendard', 'Inter', sans-serif",
       color: '#334155', background: '#f8fafc',
-      overflowY: 'auto', overflowX: 'hidden'
+      overflowX: 'hidden'
     }}>
       {/* ══════════ Header ══════════ */}
       <div style={{
@@ -125,7 +125,7 @@ export default function RiskIntelligencePage() {
         <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column' }}>
           <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 6 }}>DATA ORCHESTRATION</span>
           <h2 style={{ fontSize: 28, fontWeight: 800, color: '#fff' }}>압도적인 데이터베이스 축적과 분류</h2>
-          <p style={{ color: '#cbd5e1', fontSize: 14, marginTop: 10, maxWidth: 600, lineHeight: 1.6 }}>대한민국 건설산업 전반에 걸친 방대한 데이터. AI 모델의 정확한 인지 능력을 위해 **SQL 정량 데이터**와 **온톨로지 텍스트 데이터**로 완벽하게 이원화되었습니다.</p>
+          <p style={{ color: '#cbd5e1', fontSize: 14, marginTop: 10, maxWidth: 600, lineHeight: 1.6 }}>대한민국 건설산업 전반에 걸친 방대한 데이터. AI 모델의 정확한 인지 능력을 위해 <strong style={{color:'#fff'}}>SQL 정량 데이터</strong>와 <strong style={{color:'#fff'}}>온톨로지 텍스트 데이터</strong>로 완벽하게 이원화되었습니다.</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, position: 'relative', zIndex: 1 }}>
