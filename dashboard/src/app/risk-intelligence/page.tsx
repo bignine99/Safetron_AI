@@ -139,7 +139,7 @@ export default function RiskIntelligencePage() {
             const isCompleted = stat.val >= stat.target;
             return (
               <div key={idx} style={{
-                background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 16, padding: '24px',
+                background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 6, padding: '24px',
                 backdropFilter: 'blur(10px)', transition: 'transform 0.4s ease, border-color 0.4s ease',
                 ...(statsSection.inView ? { animation: `fadeSlideIn 0.6s ease ${idx * 0.1}s both` } : { opacity: 0 })
               }}
@@ -147,7 +147,7 @@ export default function RiskIntelligencePage() {
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: stat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 6, background: stat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon style={{ width: 22, height: 22, color: stat.color }} />
                   </div>
                   {isCompleted && <div style={{ background: stat.color, padding: '4px 8px', borderRadius: 20, fontSize: 10, fontWeight: 800, color: '#fff' }}>100% Indexed</div>}
@@ -190,7 +190,7 @@ export default function RiskIntelligencePage() {
                     <div style={{ width: 50, height: 50, borderRadius: '50%', background: isHovered ? '#3b82f6' : '#fff', border: `2px solid ${isHovered ? '#3b82f6' : '#bfdbfe'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s ease', boxShadow: isHovered ? '0 0 16px rgba(59,130,246,0.4)' : 'none' }}>
                       <Icon style={{ width: 20, height: 20, color: isHovered ? '#fff' : '#3b82f6' }} />
                     </div>
-                    <div style={{ background: isHovered ? '#eff6ff' : '#f8fafc', border: `1px solid ${isHovered ? '#bfdbfe' : '#e2e8f0'}`, borderRadius: 12, padding: '16px 20px', flex: 1, transition: 'all 0.3s ease' }}>
+                    <div style={{ background: isHovered ? '#eff6ff' : '#f8fafc', border: `1px solid ${isHovered ? '#bfdbfe' : '#e2e8f0'}`, borderRadius: 6, padding: '16px 20px', flex: 1, transition: 'all 0.3s ease' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <span style={{ fontSize: 10, fontWeight: 900, color: isHovered ? '#3b82f6' : '#94a3b8', background: isHovered ? 'rgba(59,130,246,0.1)' : '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>STEP {step.num}</span>
                         <h4 style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{step.title}</h4>
@@ -205,7 +205,7 @@ export default function RiskIntelligencePage() {
 
           {/* Right: 12 Nodes Diagram */}
           <div style={{ flex: '1 1 55%' }}>
-            <div style={{ background: '#0f172a', borderRadius: 24, padding: '36px 32px', border: '1px solid #1e293b', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
+            <div style={{ background: '#0f172a', borderRadius: 6, padding: '36px 32px', border: '1px solid #1e293b', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Network style={{ color: '#38bdf8', width: 24, height: 24 }} />
@@ -226,7 +226,7 @@ export default function RiskIntelligencePage() {
                 ].map((node, i) => (
                   <div key={i} style={{
                     background: 'linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9))',
-                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10,
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6,
                     padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10,
                     transition: 'all 0.3s ease', cursor: 'pointer'
                   }}
@@ -242,7 +242,7 @@ export default function RiskIntelligencePage() {
               {/* Data Flow arrow */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 28, gap: 16 }}>
                 <div style={{ height: 1, flex: 1, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.2))' }}></div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', padding: '10px 20px', borderRadius: 30, boxShadow: '0 4px 15px rgba(37,99,235,0.4)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', padding: '10px 20px', borderRadius: 6, boxShadow: '0 4px 15px rgba(37,99,235,0.4)' }}>
                   <Brain style={{ width: 16, height: 16, color: '#fff' }} />
                   <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>인과 관계(Edges) 입체적 연결</span>
                 </div>
@@ -251,15 +251,15 @@ export default function RiskIntelligencePage() {
             </div>
             
             {/* Old Architecture preserved as minimal component */}
-            <div style={{ padding: '20px 24px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, marginTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ padding: '20px 24px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, marginTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Cloud style={{ color: '#0ea5e9' }} /></div>
+                <div style={{ width: 40, height: 40, borderRadius: 6, background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Cloud style={{ color: '#0ea5e9' }} /></div>
                 <div><span style={{ fontSize: 10, color: '#64748b', display: 'block' }}>외부 데이터</span><strong style={{ fontSize: 13, color: '#0f172a' }}>공공 DB 연동</strong></div>
               </div>
               <ArrowRight style={{ color: '#cbd5e1' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div><span style={{ fontSize: 10, color: '#64748b', display: 'block', textAlign: 'right' }}>가공된 지능</span><strong style={{ fontSize: 13, color: '#0f172a', display: 'block' }}>분석 리포트 산출</strong></div>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BarChart3 style={{ color: '#d97706' }} /></div>
+                <div style={{ width: 40, height: 40, borderRadius: 6, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BarChart3 style={{ color: '#d97706' }} /></div>
               </div>
             </div>
           </div>
@@ -280,8 +280,8 @@ export default function RiskIntelligencePage() {
             {dbStrengths.map((s, i) => {
               const Icon = s.icon;
               return (
-                <div key={i} style={{ background: '#fff', padding: '28px', borderRadius: 20, boxShadow: '0 4px 6px rgba(0,0,0,0.02)', border: '1px solid #e2e8f0', transition: 'transform 0.3s', ...(dbStrengthsSection.inView ? { animation: `fadeSlideIn 0.5s ease ${i*0.1}s both` } : { opacity: 0 }) }} onMouseEnter={e=>e.currentTarget.style.transform='translateY(-4px)'} onMouseLeave={e=>e.currentTarget.style.transform='none'}>
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: `${s.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}><Icon style={{ color: s.color, width: 24, height: 24 }} /></div>
+                <div key={i} style={{ background: '#fff', padding: '28px', borderRadius: 6, boxShadow: '0 4px 6px rgba(0,0,0,0.02)', border: '1px solid #e2e8f0', transition: 'transform 0.3s', ...(dbStrengthsSection.inView ? { animation: `fadeSlideIn 0.5s ease ${i*0.1}s both` } : { opacity: 0 }) }} onMouseEnter={e=>e.currentTarget.style.transform='translateY(-4px)'} onMouseLeave={e=>e.currentTarget.style.transform='none'}>
+                  <div style={{ width: 48, height: 48, borderRadius: 6, background: `${s.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}><Icon style={{ color: s.color, width: 24, height: 24 }} /></div>
                   <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>{s.title}</h3>
                   <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>{s.desc}</p>
                 </div>
@@ -298,8 +298,8 @@ export default function RiskIntelligencePage() {
             {programStrengths.map((s, i) => {
               const Icon = s.icon;
               return (
-                <div key={i} style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', padding: '28px', borderRadius: 20, border: '1px solid #334155', transition: 'transform 0.3s', ...(dbStrengthsSection.inView ? { animation: `fadeSlideIn 0.5s ease ${i*0.1}s both` } : { opacity: 0 }) }} onMouseEnter={e=>e.currentTarget.style.transform='translateY(-4px)'} onMouseLeave={e=>e.currentTarget.style.transform='none'}>
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: `rgba(255,255,255,0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}><Icon style={{ color: s.color, width: 24, height: 24 }} /></div>
+                <div key={i} style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', padding: '28px', borderRadius: 6, border: '1px solid #334155', transition: 'transform 0.3s', ...(dbStrengthsSection.inView ? { animation: `fadeSlideIn 0.5s ease ${i*0.1}s both` } : { opacity: 0 }) }} onMouseEnter={e=>e.currentTarget.style.transform='translateY(-4px)'} onMouseLeave={e=>e.currentTarget.style.transform='none'}>
+                  <div style={{ width: 48, height: 48, borderRadius: 6, background: `rgba(255,255,255,0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}><Icon style={{ color: s.color, width: 24, height: 24 }} /></div>
                   <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginBottom: 8 }}>{s.title}</h3>
                   <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>{s.desc}</p>
                 </div>
@@ -316,7 +316,7 @@ export default function RiskIntelligencePage() {
           <h2 style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>보험료 산정 시스템 비교</h2>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr 1fr', gap: 0, borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr 1fr', gap: 0, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
           {/* Header */}
           <div style={{ background: 'transparent', padding: '20px 16px' }}></div>
           {[
@@ -372,7 +372,7 @@ export default function RiskIntelligencePage() {
               { title: '엔터프라이즈 B2B 번들링 및 채널 패키징', sub: '(Value Integration)', desc: '법인 영업 시 Safetron AI 플러그인을 맞춤 특약 분석의 부가 가치로 제공', color: '#7c3aed' },
               { title: '사고 예측 보상 리포트 (Consulting)', sub: '(Claims Automation)', desc: '압도적 하이브리드 RAG 기술을 통한 보상/재발방지 원스톱 리포트 제공', color: '#e11d48' },
             ].map((bm, i) => (
-              <div key={i} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: '22px 24px', borderLeft: `4px solid ${bm.color}` }}>
+              <div key={i} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '22px 24px', borderLeft: `4px solid ${bm.color}` }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 800, color: bm.color }}>{bm.title}</h3>
                   <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{bm.sub}</span>
@@ -383,13 +383,13 @@ export default function RiskIntelligencePage() {
           </div>
 
           <div style={{ flex: 1 }}>
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: '36px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '36px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                <p style={{ fontSize: 21, fontWeight: 600, color: '#334155', lineHeight: 1.6, textAlign: 'center' }}>
                 단순 통계를 넘어선 <span style={{ fontWeight: 900, color: '#0369a1', borderBottom: '3px solid #0ea5e9' }}>하이브리드 Risk Intelligence</span><br/>
                 보험회사의 심사 요율 평가의 근간을 바꿉니다.
               </p>
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 32 }}>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#0f172a', padding: '14px 28px', borderRadius: 30, color: '#fff', cursor: 'pointer', boxShadow: '0 8px 24px rgba(15,23,42,0.3)', transition: 'transform 0.2s' }} onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'} onMouseLeave={e=>e.currentTarget.style.transform='none'}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#0f172a', padding: '14px 28px', borderRadius: 6, color: '#fff', cursor: 'pointer', boxShadow: '0 8px 24px rgba(15,23,42,0.3)', transition: 'transform 0.2s' }} onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'} onMouseLeave={e=>e.currentTarget.style.transform='none'}>
                    <PlayCircle style={{ width: 20, height: 20, color: '#38bdf8' }} />
                    <span style={{ fontSize: 15, fontWeight: 800 }}>심사 자동화 파이프라인 체험하기</span>
                  </div>
