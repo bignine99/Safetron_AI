@@ -53,7 +53,7 @@ export default function Sidebar() {
       overflow: 'hidden',
     }}>
       {/* Logo */}
-      <div style={{
+      <Link href="/" style={{
         padding: collapsed ? '20px 0' : '20px 16px',
         display: 'flex',
         alignItems: 'center',
@@ -62,6 +62,7 @@ export default function Sidebar() {
         borderBottom: '1px solid var(--border-default)',
         height: 80,
         boxSizing: 'border-box',
+        textDecoration: 'none'
       }}>
         <img 
           src="/safetron/logo.jfif" 
@@ -95,7 +96,7 @@ export default function Sidebar() {
             `}</style>
           </>
         )}
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '2px 4px' : '2px 8px' }}>
