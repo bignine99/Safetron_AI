@@ -97,7 +97,7 @@ export default function RiskIntelligencePage() {
       }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 12 }}>
           <Sparkles style={{ width: 22, height: 22, color: '#38bdf8' }} />
-          전사적 Risk Intelligence Agent
+          Safetron Intelligent AI Agent
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(56, 189, 248, 0.1)', padding: '6px 14px', borderRadius: 20, border: '1px solid rgba(56, 189, 248, 0.2)' }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#38bdf8', boxShadow: '0 0 10px #38bdf8', animation: 'pulse 2s infinite' }}></div>

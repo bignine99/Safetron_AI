@@ -21,7 +21,6 @@ const navItems: NavItem[] = [
   { type: 'link', icon: DatabaseZap, title: '심층 회귀분석', subtitle: 'Regression Models', href: '/analytics/regression' },
   { type: 'link', icon: Map, title: '위험 지도', subtitle: 'Risk Map', href: '/risk-map' },
   { type: 'link', icon: TrendingUp, title: '사고 추이 분석', subtitle: 'Accident Trends', href: '/trends' },
-  { type: 'link', icon: Brain, title: 'Risk Intelligence', subtitle: 'Knowledge Graph', href: '/risk-intelligence' },
   
   { type: 'header', title: '심사 자동화 파이프라인' },
   { type: 'link', icon: Zap, title: '사고 지식 그래프', subtitle: 'Knowledge Graph', href: '/accidents' },
@@ -31,6 +30,7 @@ const navItems: NavItem[] = [
   { type: 'link', icon: CloudRain, title: '고위험 특약 맵', subtitle: 'Coverage Heatmap', href: '/coverage-heatmap' },
   { type: 'link', icon: BadgeDollarSign, title: '보험 요율 심사', subtitle: 'Underwriting', href: '/underwriter-scorecard' },
   { type: 'link', icon: ShieldCheck, title: '리스크 종합평가 Agent', subtitle: 'Comprehensive Agent', href: '/comprehensive-agent' },
+  { type: 'link', icon: Brain, title: 'Safetron AI 특장점', subtitle: 'Key Features', href: '/risk-intelligence' },
 ];
 
 export default function Sidebar() {
