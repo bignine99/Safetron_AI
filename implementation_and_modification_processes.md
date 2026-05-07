@@ -263,3 +263,43 @@ ag_output_0416.log)�릺�룄濡� 議곗튂�븿.
 - 좌측 상단 최상위 로고 및 텍스트 영역인 **Safetron AI 빨간색 박스 영역 전체**를 단순 구조체(`div`)에서 Next.js의 라우팅 구조체(`<Link>`)로 교체 환장.
 - 굳이 마우스를 내려 특정 항목을 찾지 않아도, 사용자가 플랫폼의 어디에 있든 상단 로고만 클릭하면 가장 첫 페이지인 **'종합 요약(Overview)'(`/`) 화면으로 즉각 회귀**하는 글로벌 내비게이션 UX(Single Page Application Routing) 완성.
 - 모든 업데이트 내역을 `git push`로 메인 브랜치에 올린 뒤 자동화된 `ssh_deploy.py`를 통해 NCP Ubuntu 프록시 서버(`110.165.17.170:3005`)로 무중단 무재해 반영(Exit code 0) 성공.
+
+---
+
+## 2026-05-07 (인프라 마이그레이션 후 Safetron 502 에러 복구 및 프로젝트 구조 정리)
+
+### 1. Safetron 대시보드 502 Bad Gateway 긴급 복구
+
+- **증상**: `https://www.ninetynine99.co.kr/safetron/` 접속 시 502 Bad Gateway 반환. 메인 도메인(`ninetynine99.co.kr`)은 정상.
+- **진단 과정**:
+  - SSH 접속 후 `pm2 status` 확인 → `safetron-dashboard` 프로세스는 **포트 3005**에서 정상 online 상태.
+  - `curl http://localhost:3005/safetron` → **HTTP 200 OK** (로컬에서는 정상 작동).
+  - Nginx 설정 확인 → `/safetron/` location 블록이 `proxy_pass http://127.0.0.1:5002` 로 설정되어 있었음.
+- **근본 원인**: Naver Cloud → AWS Lightsail 마이그레이션 시 Nginx 설정에서 **Safetron 프록시 포트가 잘못 설정**됨.
+  - 기존 NCP: `localhost:3005` (정상)
+  - Lightsail Nginx: `localhost:5002` ← **포트 불일치 (502 원인)**
+- **해결 (2건)**:
+  1. **포트 수정**: `proxy_pass`를 `http://127.0.0.1:5002` → `http://127.0.0.1:3005`로 교정.
+  2. **Location 패턴 수정**: `location /safetron/` → `location /safetron`으로 변경 (Next.js `basePath: '/safetron'`과 호환성 확보. trailing slash 제거).
+  3. **프록시 헤더 보강**: `Upgrade`, `Connection`, `X-Forwarded-For`, `X-Forwarded-Proto`, `proxy_cache_bypass` 헤더 추가.
+- **결과**: `nginx -t` 통과 → `systemctl reload nginx` → **HTTP 200 OK** 정상 복구 확인.
+- **서버 정보 (마이그레이션 후)**: AWS Lightsail `43.203.182.190`, PM2 `safetron-dashboard` on port 3005.
+
+### 2. 프로젝트 폴더 구조 정리 (미커밋 상태)
+
+- **배경**: 루트 디렉토리에 34개의 유틸리티/디버그/배포 스크립트가 산재해 있어 프로젝트 가독성 저하.
+- **정리 구조**:
+  ```
+  260410_safetron/
+  ├── dashboard/              ← Next.js 핵심 소스 (변경 없음)
+  ├── config/                 ← nginx_ninetynine, solutions_server.ts
+  ├── scripts/
+  │   ├── data_pipeline/      ← aggregate_data.py, ingest_graph.py 등 12개
+  │   ├── debug/              ← check_pm2.py, test_db.js 등 16개  
+  │   └── deploy/             ← deploy_build.py, ssh_deploy.py 등 4개
+  ├── logs_and_temp/          ← cols.json, output.html, 각종 로그
+  ├── .gitignore              ← 민감파일 보호 (*.pem, *.db, .env*)
+  └── implementation_and_modification_processes.md
+  ```
+- **핵심 코드(`dashboard/`)**: Git 리포지토리와 100% 동일. 변경 없음.
+- **상태**: `git add -A && git commit && git push` 대기 중.

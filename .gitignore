@@ -1,25 +1,40 @@
+# Environment & Secrets
 .env*
-.raw_data/
+*.pem
 *.db
 test_keys.json
+
+# Raw Data (large files)
+.raw_data/
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
 venv/
 env/
 .venv/
+
+# Next.js / Node
 dashboard/node_modules/
 dashboard/.next/
 dashboard/out/
 dashboard/build/
+dashboard/tsconfig.tsbuildinfo
+dashboard/next-env.d.ts
+
+# OS
 .DS_Store
 
-# Sensitive & Deploy Scripts
-*.pem
+# Logs
 *.log
-deploy_to_ncp.py
-check_server.py
-fix_*.py
-test_*.mjs
-test_*.js
-append_logs*.py
+logs_and_temp/*.log
+
+# Sensitive scripts (not for public repo)
+scripts/deploy/deploy_to_ncp.py
+scripts/debug/check_server.py
+scripts/debug/fix_*.py
+scripts/debug/test_*.mjs
+scripts/debug/test_*.js
+scripts/debug/test_db_connection.js
+scripts/debug/append_logs*.py
