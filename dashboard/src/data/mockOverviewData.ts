@@ -52,7 +52,7 @@ export const getGaugeData = (simulationMode: boolean) => ({
 export const heatmapBaseValues = [43, 85, 21, 67, 92, 14, 55, 78, 33, 9, 74, 50];
 
 export const sampleDB = Array.from({length: 50}, (_, i) => ({
-  id: \`SAF-\${2020 + (i%5)}-\${String(i).padStart(4, '0')}\`,
+  id: `SAF-${2020 + (i%5)}-${String(i).padStart(4, '0')}`,
   company: ['현대건설', '삼성물산', 'GS건설', '포스코이앤씨', '대우건설', '동부엔지니어링'][i%6],
   category: ['건축', '토목', '플랜트'][i%3],
   process: ['철근콘크리트', '가설공사', '토공사', '안전시설'][i%4],
