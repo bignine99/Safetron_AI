@@ -45,23 +45,23 @@ def create_ssh_client(
     host: str | None = None,
     port: int | None = None,
     username: str | None = None,
-    password: str | None = None,
+    key_filename: str | None = None,
     timeout: int = 15,
 ) -> paramiko.SSHClient:
     """환경변수로부터 접속 정보를 가져와 SSHClient를 반환합니다."""
-    host = host or os.environ.get("NCP_HOST")
-    port = port or int(os.environ.get("NCP_PORT", "22"))
-    username = username or os.environ.get("NCP_USERNAME")
-    password = password or os.environ.get("NCP_PASSWORD")
+    host = host or os.environ.get("AWS_HOST")
+    port = port or int(os.environ.get("AWS_PORT", "22"))
+    username = username or os.environ.get("AWS_USERNAME")
+    key_filename = key_filename or os.environ.get("AWS_KEY_PATH")
 
-    if not host or not username or not password:
-        print("[FAIL] SSH 환경변수(NCP_HOST, NCP_USERNAME, NCP_PASSWORD)가 설정되지 않았습니다.")
+    if not host or not username or not key_filename:
+        print("[FAIL] SSH 환경변수(AWS_HOST, AWS_USERNAME, AWS_KEY_PATH)가 설정되지 않았습니다.")
         print("       scripts/.env 파일을 확인하세요.")
         sys.exit(1)
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(host, port=port, username=username, password=password, timeout=timeout)
+    client.connect(host, port=port, username=username, key_filename=key_filename, timeout=timeout)
     return client
 
 # ── 원격 명령 실행 헬퍼 ────────────────────────────────────────

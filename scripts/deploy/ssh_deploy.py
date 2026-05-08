@@ -7,7 +7,7 @@ client = create_ssh_client()
 try:
     print("Connected. Executing deployment...")
     cmd = '''
-    cd /root/Safetron_AI && \\
+    cd /home/ubuntu/Safetron_AI && \\
     git fetch origin && \\
     git reset --hard origin/main && \\
     cd dashboard && \\
