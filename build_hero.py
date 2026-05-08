@@ -64,8 +64,8 @@ def create_hero_page():
       <p class="hero-desc">
         대한민국 건설산업 전반에 걸친 방대한 데이터. AI 모델의 정확한 인지 능력을 위해<br/>SQL 정량 데이터와 온톨로지 텍스트 데이터로 완벽하게 이원화되었습니다.
       </p>
-      <a href="#pipeline" class="cta-button font-outfit">
-        EXPLORE PIPELINE
+      <a href="/safetron/" class="cta-button font-outfit">
+        LAUNCH DASHBOARD
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12h14"></path>
           <path d="m12 5 7 7-7 7"></path>

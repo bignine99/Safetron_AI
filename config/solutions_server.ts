@@ -23,7 +23,7 @@ export const simpleSolutions: Solution[] = [
         title: 'Safetron AI',
         description: '건설 안전 지식그래프 탐색 · AI 사고 패턴 분석 대시보드',
         description2: '38,000건 이상의 건설 사고 데이터를 3D 지식그래프로 시각화하고, AI 기반 사고 패턴 분석·시공사 프로파일링·교차 분석·안전교육 콘텐츠를 제공하는 건설 안전 인텔리전스 플랫폼입니다.',
-        href: '/safetron/',
+        href: '/safetron/hero/templates/landing.html',
         icon: 'BarChart3',
         external: false,
         category: 'Safety',
