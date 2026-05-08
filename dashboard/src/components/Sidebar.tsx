@@ -30,7 +30,6 @@ const navItems: NavItem[] = [
   { type: 'link', icon: CloudRain, title: '고위험 특약 맵', subtitle: 'Coverage Heatmap', href: '/coverage-heatmap' },
   { type: 'link', icon: BadgeDollarSign, title: '보험 요율 심사', subtitle: 'Underwriting', href: '/underwriter-scorecard' },
   { type: 'link', icon: ShieldCheck, title: '리스크 종합평가 Agent', subtitle: 'Comprehensive Agent', href: '/comprehensive-agent' },
-  { type: 'link', icon: Brain, title: 'Safetron AI 특장점', subtitle: 'Key Features', href: '/risk-intelligence' },
 ];
 
 export default function Sidebar() {
@@ -53,7 +52,7 @@ export default function Sidebar() {
       overflow: 'hidden',
     }}>
       {/* Logo */}
-      <Link href="/" style={{
+      <Link href="http://localhost:8080/templates/landing.html" style={{
         padding: collapsed ? '20px 0' : '20px 16px',
         display: 'flex',
         alignItems: 'center',
@@ -93,14 +92,17 @@ export default function Sidebar() {
                 0% { background-position: 0% 50%; }
                 100% { background-position: -200% 50%; }
               }
+              #sidebar-nav::-webkit-scrollbar {
+                display: none;
+              }
             `}</style>
           </>
         )}
       </Link>
 
       {/* Nav */}
-      <nav className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '2px 4px' : '2px 8px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      <nav id="sidebar-nav" style={{ flex: 1, overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none', padding: collapsed ? '2px 4px' : '2px 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {navItems.map((item, idx) => {
             if (item.type === 'header') {
               if (collapsed) return <div key={idx} style={{ height: 16 }} />;

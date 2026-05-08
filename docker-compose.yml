@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  safetron-dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: safetron-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./dashboard/.env.local
+    restart: always
+
+  safetron-hero:
+    image: nginx:alpine
+    container_name: safetron-hero
+    ports:
+      - "8080:80"
+    volumes:
+      - ./hero_landing:/usr/share/nginx/html:ro
+    restart: always

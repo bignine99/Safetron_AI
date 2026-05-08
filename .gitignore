@@ -30,11 +30,8 @@ dashboard/next-env.d.ts
 *.log
 logs_and_temp/*.log
 
-# Sensitive scripts (not for public repo)
-scripts/deploy/deploy_to_ncp.py
-scripts/debug/check_server.py
-scripts/debug/fix_*.py
-scripts/debug/test_*.mjs
-scripts/debug/test_*.js
-scripts/debug/test_db_connection.js
-scripts/debug/append_logs*.py
+# Scripts environment (secrets — 환경변수 중앙 관리 파일)
+scripts/.env
+
+# Agent harness (linked from central, not for repo)
+.agent/

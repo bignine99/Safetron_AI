@@ -1,0 +1,96 @@
+## 2026-04-17 (화요일 시연 대비 최종 UI/UX 고도화 및 안정성 확보)
+
+### 1. 시각화 대시보드 구조 전면 개편 (Accident Trends)
+- **2-Column High-Density 구조 적용:** 기존 1단 배열에서 엔지니어링 표준 규격에 맞게 화면을 1:1로 분할한 2열 고밀도 그리드(2-Column Layout)로 재구성 (높이 약 480px 확보로 직관적인 가독성 향상).
+- **데이터 활용도 강화 (총 10종의 시계열 및 분포 차트 구현):**
+    - 연면적별 사고 분포 추이 (Area Chart)
+    - 공정률 분율 선행지표 (Line Chart)
+    - 재해 손실액 히스토그램 (Bar Chart)
+    - 투입 작업자 수별 발생 밀도 (Composed Chart: Bar+Line)
+    - 기상 (온도) 상태별 빈도 분포 (Area Chart)
+    - 환경 (습도) 상태별 빈도 분포 (Bar Chart)
+    - 최근 10년 사고 누적 구간밀도 (Bar Chart)
+    - 안전관리비 투자비율 편차치 추세 (Area Chart)
+    - 하도급비율 및 리스크 분포도 (Line Chart)
+    - 작업중지일수 (추정) 이상탐지 볼륨 (Bar Chart with Conditional Color Mapping)
+- **차트 컬러 및 테마 세팅:** Safetron 자체 브랜드 모노크로매틱 11개 컬러칩을 활용하여 전문적이고 미려한 UI 마감 적용.
+- **레이아웃 디자인:** 각 카드 모서리 반경(border-radius)을 6px 사이즈로 날카롭게 디자인하여 전문 소프트웨어 형태 구현. 헤더 패널은 80px 높이로 통일.
+
+### 2. Risk Map (위험 지도) 데이터 매핑 누락 해결
+- 상관계수 데이터 구조의 JSON 키값(pearson_r -> 
+, p_value -> p) 변경을 차트 로직과 동기화. 빈 패널로 나오던 버블 차트 오류 완벽 복구.
+- 카테고리 데이터(categorical)에서 기상상태 및 작업공종 항목을 지식그래프 온톨로지의 핵심 스키마인 사고유형_분류(KOSHA) 및 공사종류 데이터셋으로 교체하여 도넛 및 바 차트 데이터 누락을 해결함 (alue가 아닌 label 필드 매핑으로 수정).
+- 트리맵 차트(Treemap) 내부에 강제 텍스트 라벨링 오버레이(CustomizedTreemapContent) 코드를 삽입하여 직관적인 구간 식별 가능하도록 개선.
+- 게이지 차트(Risk Index Gauge) 하단에 분석결과 텍스트를 고정 노출하여 데이터 전달 및 해석력 확대.
+
+### 3. 좌측 공통 GNB Sidebar (Navigation Tool) 공간 최적화
+- 각 네비게이션 항목 마진 및 패딩값을 기존 대비 축소 조정 (Top/Bottom padding, element gap 축소). 이로 인해 브라우저상에서 세로축이 길어져 우측 스크롤바가 발생하던 UX 불편현상을 완벽 제거.
+- **카테고리 헤더 타이틀 가시성 향상:** 데이터 분석 대시보드 및 심사 자동화 파이프라인 대분류 타이틀에 극강의 볼드 처리(fontWeight: 900)와 더불어 블랙에 가까운 Deep Slate (#0f172a) 색상을 부여하여 메인 네비게이션 시각적 구분을 명확히 분리 증대.
+
+### 4. 서버 설정 및 배포 (PM2 Stabilization)
+- 사내 접속 루트인 Nginx 리버스 프록시 연동 및 솔루션 백오피스 통합을 위해 next.config.ts 에 basePath: '/safetron' 설정 적용. 
+- Python 기반 운영 배포 스크립트(ssh_deploy.py)를 통해 110.165.17.170:3005/safetron 실서버로 무중단 푸시 반영 성공. 운영용 PM2 cluster 안정적 유지 확인. 시연 대비 프로덕션 Lock 처리.
+
+## 2026-04-18 (Risk Intelligence Agent 인터페이스 고도화 및 하이엔드 디자인 스택 적용)
+
+### 1. Cyber-Engineering 레이아웃 붕괴 디버깅 및 정규화
+- **Flexbox Layout Collapse (Squashing) 이슈 해결**: 전체 메인 래퍼(Wrapper) 뷰가 세로 `display: flex`, `height: 100vh`의 제한을 안고 있어, 통계 카드 영역 등 최상단 헤더 콘텐츠의 높이가 강제로 '0'으로 찌그러지며 텍스트가 잘리는 심각한 렌더링 버그(Overflow Bug)를 진단함.
+- **해결 방안 및 스크롤 복구**: 최상위 태그의 불필요한 flex 종속을 해제하고, `position: 'absolute', inset: 0`과 `overflowY: 'auto'`를 사용하여 Next.js 부모 레이아웃의 절대 영역을 100% 흡수하면서 독자적인 스크롤바가 정상 생성되도록 구조를 완전 개편함.
+- **설계 표준화 (6px Border Radius)**: 페이지 내에 존재하는 모든 시각적 카드 영역, 아이콘 배경, 특장점 패널, 하이브리드 RAG 파이프라인 컨테이너의 모서리 곡률을 전사적 엔지니어링 뷰 표준인 `6px`로 일괄 강제 조정하여 날렵하고 통일성 있는 디자인 랭귀지를 구축.
+
+### 2. 하이엔드(Premium) 시네마틱 특수 효과 적용 (조화로운 튜닝)
+- **과유불급 방지**: 복잡하고 무거운 애니메이션의 무분별한 사용을 배제하고 금융/엔지니어링 테마에 맞는 절제된 5종의 High-End 기법만을 선별.
+- **Aurora Background & SVG Grain Noise**: 배경에 3가지 톤(블루, 인디고, 민트)의 `radial-gradient` 블랍(Blob)이 `blur(80px)` 상태로 18~25초 주기로 극히 느리게 유동(Keyframes Animation)하게 한 뒤, 그 위에 `feTurbulence` 속성의 투명도 25% 미세 필름 노이즈(Noise)를 덮어씌워 깊고 오묘한 시네마틱 공간감을 연출.
+- **Glassmorphism 2.0**: 상단 Bento Grid 형태의 4개 정량/정성 데이터 통계 카드(37,196 Rows 등)에 `blur(24px) saturate(130%)` 백드롭 필터와 투명한 이너 섀도우를 부여하여, 극대화된 고급 유리 질감을 전면 적용.
+- **Dynamic Bento Grid Interaction**: 4개의 데이터 카드를 마우스로 Hover 시 1.03배 스케일업과 고유의 아이콘 컬러를 뿜어내는 입체적 글로우 그림자 효과를 부드러운 Cubic-Bezier 곡선 궤적으로 연출. 
+- **Gradient Shift**: "압도적인 데이터베이스 축적과 분류" 타이틀 텍스트 내부로 은백색 메탈 광택이 6초 주기로 지나가는 선형 그라데이션 클리핑 애니메이션 구현.
+
+### 3. 네비게이션(Sidebar) 체계 및 UI 워딩 구조 변경
+- 좌측 GNB 사이드바 메뉴 중 **Risk Intelligence**라는 항목명을 비즈니스적 가치를 투명하게 담을 수 있도록 **"Safetron AI 특장점"**으로 한글화 및 명칭 변경.
+- 본문 페이지 상단 메인 헤더의 워딩인 "전사적 Risk Intelligence Agent"를 한층 더 진보된 도구임을 내포하는 **"Safetron Intelligent AI Agent"**로 격상.
+- 정보 인지 흐름(Workflow) 최적화에 따라, 해당 메뉴의 위치를 "데이터 분석 대시보드" 그룹 하단에서 **"심사 자동화 파이프라인" 그룹 최하단(전체 탭의 가장 마지막 대미)**으로 완벽히 이전 배치함.
+
+### 4. 사용자 편의성(UX)을 고려한 홈페이지 귀환 핫키(Link) 구축
+- 좌측 상단 최상위 로고 및 텍스트 영역인 **Safetron AI 빨간색 박스 영역 전체**를 단순 구조체(`div`)에서 Next.js의 라우팅 구조체(`<Link>`)로 교체 환장.
+- 굳이 마우스를 내려 특정 항목을 찾지 않아도, 사용자가 플랫폼의 어디에 있든 상단 로고만 클릭하면 가장 첫 페이지인 **'종합 요약(Overview)'(`/`) 화면으로 즉각 회귀**하는 글로벌 내비게이션 UX(Single Page Application Routing) 완성.
+- 모든 업데이트 내역을 `git push`로 메인 브랜치에 올린 뒤 자동화된 `ssh_deploy.py`를 통해 NCP Ubuntu 프록시 서버(`110.165.17.170:3005`)로 무중단 무재해 반영(Exit code 0) 성공.
+
+---
+
+## 2026-05-07 (인프라 마이그레이션 후 Safetron 502 에러 복구 및 프로젝트 구조 정리)
+
+### 1. Safetron 대시보드 502 Bad Gateway 긴급 복구
+
+- **증상**: `https://www.ninetynine99.co.kr/safetron/` 접속 시 502 Bad Gateway 반환. 메인 도메인(`ninetynine99.co.kr`)은 정상.
+- **진단 과정**:
+  - SSH 접속 후 `pm2 status` 확인 → `safetron-dashboard` 프로세스는 **포트 3005**에서 정상 online 상태.
+  - `curl http://localhost:3005/safetron` → **HTTP 200 OK** (로컬에서는 정상 작동).
+  - Nginx 설정 확인 → `/safetron/` location 블록이 `proxy_pass http://127.0.0.1:5002` 로 설정되어 있었음.
+- **근본 원인**: Naver Cloud → AWS Lightsail 마이그레이션 시 Nginx 설정에서 **Safetron 프록시 포트가 잘못 설정**됨.
+  - 기존 NCP: `localhost:3005` (정상)
+  - Lightsail Nginx: `localhost:5002` ← **포트 불일치 (502 원인)**
+- **해결 (2건)**:
+  1. **포트 수정**: `proxy_pass`를 `http://127.0.0.1:5002` → `http://127.0.0.1:3005`로 교정.
+  2. **Location 패턴 수정**: `location /safetron/` → `location /safetron`으로 변경 (Next.js `basePath: '/safetron'`과 호환성 확보. trailing slash 제거).
+  3. **프록시 헤더 보강**: `Upgrade`, `Connection`, `X-Forwarded-For`, `X-Forwarded-Proto`, `proxy_cache_bypass` 헤더 추가.
+- **결과**: `nginx -t` 통과 → `systemctl reload nginx` → **HTTP 200 OK** 정상 복구 확인.
+- **서버 정보 (마이그레이션 후)**: AWS Lightsail `43.203.182.190`, PM2 `safetron-dashboard` on port 3005.
+
+### 2. 프로젝트 폴더 구조 정리 (미커밋 상태)
+
+- **배경**: 루트 디렉토리에 34개의 유틸리티/디버그/배포 스크립트가 산재해 있어 프로젝트 가독성 저하.
+- **정리 구조**:
+  ```
+  260410_safetron/
+  ├── dashboard/              ← Next.js 핵심 소스 (변경 없음)
+  ├── config/                 ← nginx_ninetynine, solutions_server.ts
+  ├── scripts/
+  │   ├── data_pipeline/      ← aggregate_data.py, ingest_graph.py 등 12개
+  │   ├── debug/              ← check_pm2.py, test_db.js 등 16개  
+  │   └── deploy/             ← deploy_build.py, ssh_deploy.py 등 4개
+  ├── logs_and_temp/          ← cols.json, output.html, 각종 로그
+  ├── .gitignore              ← 민감파일 보호 (*.pem, *.db, .env*)
+  └── implementation_and_modification_processes.md
+  ```
+- **핵심 코드(`dashboard/`)**: Git 리포지토리와 100% 동일. 변경 없음.
+- **상태**: `git add -A && git commit && git push` 대기 중.

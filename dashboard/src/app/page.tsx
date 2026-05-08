@@ -11,6 +11,9 @@ import {
 } from 'chart.js';
 import { Bar, Radar, Doughnut, Bubble, Scatter, PolarArea } from 'react-chartjs-2';
 import CardHeader from '@/components/CardHeader';
+import {
+  getSimValue, getCategoryData, getBubbleData, getRadarData, getGaugeData, heatmapBaseValues, sampleDB
+} from '@/data/mockOverviewData';
 
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, 
@@ -29,65 +32,14 @@ export default function DashboardOverviewLayout() {
       .catch(console.error);
   }, []);
 
-  // Utility to get toggleable data for simulation
-  const getSimValue = (base: number, volatility: number) => {
-    return simulationMode ? Math.max(0, Math.floor(base * (1 + (Math.random() * volatility - volatility/2)))) : base;
-  };
-
-  // 1. Bar Chart (Stacked) - 공사종류(Category)
-  const categoryData = {
-    labels: ['건축', '토목', '플랜트', '조경', '전기', '기타'],
-    datasets: [
-      { label: '추락', data: [getSimValue(3200, 0.4), getSimValue(1200, 0.4), 800, 200, 400, 500], backgroundColor: '#1e3a8a', stack: 'Stack 0' },
-      { label: '협착', data: [900, getSimValue(2100, 0.5), 1100, 400, 100, 300], backgroundColor: '#3b82f6', stack: 'Stack 0' },
-      { label: '타격', data: [1500, 800, 400, 100, 200, 700], backgroundColor: '#93c5fd', stack: 'Stack 0' },
-    ]
-  };
-
-  // 2. Bubble Chart - 사고유형(AccidentType) vs 피해규모(Fatality)
-  const bubbleData = {
-    datasets: [{
-      label: '사고유형 군집',
-      data: [
-        { x: getSimValue(80, 0.2), y: getSimValue(65, 0.3), r: getSimValue(20, 0.5), type: '추락' },
-        { x: getSimValue(40, 0.2), y: getSimValue(85, 0.3), r: getSimValue(15, 0.5), type: '협착' },
-        { x: getSimValue(60, 0.2), y: getSimValue(45, 0.3), r: getSimValue(10, 0.5), type: '충돌' },
-        { x: getSimValue(95, 0.2), y: getSimValue(90, 0.3), r: getSimValue(25, 0.5), type: '붕괴' },
-        { x: getSimValue(30, 0.2), y: getSimValue(20, 0.3), r: getSimValue(8, 0.5), type: '전도' },
-      ],
-      backgroundColor: 'rgba(37, 99, 235, 0.6)',
-      borderColor: '#1e40af',
-      borderWidth: 1
-    }]
-  };
-
-  // 3. Radar Chart - 기인물(Object) 리스크 프로파일
-  const radarData = {
-    labels: ['가설구조물', '건설기계', '운반기계', '수공구', '자재', '환경/지형'],
-    datasets: [{
-      label: '위험도 지표',
-      data: [getSimValue(88, 0.3), getSimValue(95, 0.3), 70, 40, 65, 80],
-      backgroundColor: 'rgba(71, 85, 105, 0.2)',
-      borderColor: '#334155',
-      pointBackgroundColor: '#0f172a',
-      borderWidth: 2
-    }]
-  };
-
-  // 4. Gauge Chart (Doughnut half) - 위험지수(Risk Index)
-  const gaugeData = {
-    datasets: [{
-      data: [getSimValue(76, 0.4), 100 - getSimValue(76, 0.4)],
-      backgroundColor: ['#0f172a', '#e2e8f0'],
-      borderWidth: 0,
-      circumference: 180,
-      rotation: 270
-    }]
-  };
+  const categoryData = getCategoryData(simulationMode);
+  const bubbleData = getBubbleData(simulationMode);
+  const radarData = getRadarData(simulationMode);
+  const gaugeData = getGaugeData(simulationMode);
 
   // Node styles configuration
   const nodeStyle = {
-    padding: '24px', background: '#ffffff', border: '1px solid #cbd5e1', 
+    padding: '24px', background: '#ffffff', borderWidth: '1px', borderStyle: 'solid', borderColor: '#cbd5e1', 
     borderRadius: '6px', transition: 'all 0.3s ease',
     boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
   };
@@ -96,19 +48,7 @@ export default function DashboardOverviewLayout() {
     borderColor: '#94a3b8'
   };
 
-  // Mock Table Data Generation based on 9 Nodes
-  const sampleDB = Array.from({length: 50}, (_, i) => ({
-    id: `SAF-${2020 + (i%5)}-${String(i).padStart(4, '0')}`,
-    company: ['현대건설', '삼성물산', 'GS건설', '포스코이앤씨', '대우건설', '동부엔지니어링'][i%6],
-    category: ['건축', '토목', '플랜트'][i%3],
-    process: ['철근콘크리트', '가설공사', '토공사', '안전시설'][i%4],
-    cause: ['작업절차미준수', '개인보호구미착용', '장비결함', '감독소홀'][i%4],
-    object: ['비계', '굴착기', '타워크레인', '지게차'][i%4],
-    status: ['자재운반', '거푸집조립', '철근배근', '콘크리트타설'][i%4],
-    location: ['지하1층', '지상12층', '현장외부', '옥상'][i%4],
-    type: ['추락', '협착', '충돌', '전도'][i%4],
-    fatality: ['사망1, 부상0', '부상2', '경상1', '사망0, 중상1'][i%4]
-  }));
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: "'Pretendard', sans-serif", background: '#f1f5f9', color: '#0f172a', overflowY: 'auto' }}>
@@ -197,14 +137,14 @@ export default function DashboardOverviewLayout() {
           <div style={{...nodeStyle, ...hoveredNode==='n4'?nodeHoverStyle:{}}} onMouseEnter={()=>setHoveredNode('n4')} onMouseLeave={()=>setHoveredNode(null)}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b', marginBottom: 16, letterSpacing: '0.05em' }}>[NODE 03] 대공종 (PROCESS) - 수형도 (Treemap)</div>
             <div style={{ height: 220, display: 'flex', gap: 4 }}>
-              <div style={{ flex: getSimValue(5, 0.4), background: '#0f172a', borderRadius: '6px', padding: 8, color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', flexDirection:'column' }}>
-                <span>철근콘크리트공사</span><span style={{ fontSize: 18, marginTop: 'auto' }}>{getSimValue(38, 0.2)}%</span>
+              <div style={{ flex: getSimValue(5, 0.4, simulationMode), background: '#0f172a', borderRadius: '6px', padding: 8, color: '#fff', fontSize: 11, fontWeight: 600, display: 'flex', flexDirection:'column' }}>
+                <span>철근콘크리트공사</span><span style={{ fontSize: 18, marginTop: 'auto' }}>{getSimValue(38, 0.2, simulationMode)}%</span>
               </div>
               <div style={{ flex: 3, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <div style={{ flex: getSimValue(2, 0.2), background: '#334155', borderRadius: '6px', padding: 8, color: '#fff', fontSize: 11, fontWeight: 600 }}>가설공사<br/>{getSimValue(21, 0.1)}%</div>
+                <div style={{ flex: getSimValue(2, 0.2, simulationMode), background: '#334155', borderRadius: '6px', padding: 8, color: '#fff', fontSize: 11, fontWeight: 600 }}>가설공사<br/>{getSimValue(21, 0.1, simulationMode)}%</div>
                 <div style={{ flex: 1, display: 'flex', gap: 4 }}>
-                  <div style={{ flex: 2, background: '#475569', borderRadius: '6px', padding: 8, color: '#fff', fontSize: 10, fontWeight: 600 }}>토공<br/>{getSimValue(12, 0.1)}%</div>
-                  <div style={{ flex: 1, background: '#94a3b8', borderRadius: '6px', padding: 8, color: '#fff', fontSize: 10, fontWeight: 600 }}>기타<br/>{getSimValue(8, 0.1)}%</div>
+                  <div style={{ flex: 2, background: '#475569', borderRadius: '6px', padding: 8, color: '#fff', fontSize: 10, fontWeight: 600 }}>토공<br/>{getSimValue(12, 0.1, simulationMode)}%</div>
+                  <div style={{ flex: 1, background: '#94a3b8', borderRadius: '6px', padding: 8, color: '#fff', fontSize: 10, fontWeight: 600 }}>기타<br/>{getSimValue(8, 0.1, simulationMode)}%</div>
                 </div>
               </div>
             </div>
@@ -214,8 +154,8 @@ export default function DashboardOverviewLayout() {
           <div style={{...nodeStyle, ...hoveredNode==='n5'?nodeHoverStyle:{}}} onMouseEnter={()=>setHoveredNode('n5')} onMouseLeave={()=>setHoveredNode(null)}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#64748b', marginBottom: 16, letterSpacing: '0.05em' }}>[NODE 05] 사고원인 (CAUSE) - 열지도 (Heat Map)</div>
             <div style={{ height: 220, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridTemplateRows: 'repeat(3, 1fr)', gap: 4 }}>
-              {Array.from({length: 12}).map((_, i) => {
-                const heat = getSimValue(Math.floor(Math.random()*100), 0.5);
+              {heatmapBaseValues.map((baseHeat, i) => {
+                const heat = getSimValue(baseHeat, 0.5, simulationMode);
                 const isHot = heat > 70;
                 return (
                   <div key={i} style={{ 
@@ -238,7 +178,7 @@ export default function DashboardOverviewLayout() {
                 <Doughnut data={gaugeData} options={{ responsive: true, maintainAspectRatio: false, plugins: { tooltip: {enabled: false} }, cutout: '75%' }} />
               </div>
               <div style={{ position: 'absolute', top: 100, textAlign: 'center' }}>
-                <div style={{ fontSize: 32, fontWeight: 800, color: '#0f172a' }}>{getSimValue(76, 0.4)}</div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: '#0f172a' }}>{getSimValue(76, 0.4, simulationMode)}</div>
                 <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Risk Score</div>
               </div>
             </div>
